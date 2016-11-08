@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/bilateral_filter"
+        android:title="Bilateral Filter">
+
+        <menu>
+            <item android:title ="Sigma Value"
+                android:id="@+id/bilateral_sigma" />
+            </menu>
+
+    </item>
+    <item android:id="@+id/canny_filter"
+        android:title="Canny Filter">
+
+        <menu>
+            <item android:title ="Threshold 1"
+                android:id="@+id/canny_threshold_1" />
+            <item android:title ="Threshold 2"
+                android:id="@+id/canny_threshold_2" />
+        </menu>
+
+    </item>
+    <item android:id="@+id/hough_lines"
+        android:title="Hough Lines" >
+
+        <menu>
+            <item android:title ="Rho Precision"
+                android:id="@+id/hough_rho" />
+            <item android:title ="Theta Precision"
+                android:id="@+id/hough_theta" />
+            <item android:title ="Threshold"
+                android:id="@+id/hough_threshold" />
+            <item android:title ="Min Line Length"
+                android:id="@+id/hough_line_length" />
+            <item android:title ="Max Line Gap"
+                android:id="@+id/hough_line_gap" />
+        </menu>
+
+    </item>
+
+</menu>
