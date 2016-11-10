@@ -26,12 +26,21 @@
         android:text="TextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="27dp"
-        android:layout_marginStart="27dp"
-        android:layout_marginBottom="12dp"
         android:id="@+id/bilateral_sigma_text"
-        android:layout_above="@+id/bilateral_sigma_seekbar"
+        android:textColor="@android:color/white"
+        android:layout_alignBaseline="@+id/cameraModeSwitch"
+        android:layout_alignBottom="@+id/cameraModeSwitch"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:textColor="@android:color/white" />
+        android:layout_marginLeft="17dp"
+        android:layout_marginStart="17dp" />
+
+    <Switch
+        android:text="Camera Mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/cameraModeSwitch"
+        android:layout_above="@+id/bilateral_sigma_seekbar"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 </RelativeLayout>

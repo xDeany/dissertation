@@ -6,7 +6,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceView;
+import android.widget.CompoundButton;
 import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -22,13 +24,13 @@ import org.opencv.imgproc.Imgproc;
 
 public class HoughLines extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
+    private static boolean videoEnabled = true;
+
     private static String TAG = "HoughLines";
+
     private SeekBar seekbar;
     private TextView seekbar_text;
-
-
     private String seekBarSetting = "bilateral_sigma_value";
-
     private String seekBarVariable = "Sigma Value";
     private int bilateral_sigma_value = 20;
     private int canny_threshold1 = 50;
@@ -40,7 +42,7 @@ public class HoughLines extends AppCompatActivity implements CameraBridgeViewBas
     private int hough_max_line_gap = 10;
 
     JavaCameraView javaCameraView;
-    Mat cameraFrameRGB, cameraFrameGray, dest, haughLines;
+    Mat cameraFrameRGB, cameraFrameGray, haughLines;
     int height, width;
     BaseLoaderCallback mLoaderCallBack = new BaseLoaderCallback(this) {
         @Override
@@ -67,6 +69,14 @@ public class HoughLines extends AppCompatActivity implements CameraBridgeViewBas
         javaCameraView.setCameraIndex(1);
         javaCameraView.setCvCameraViewListener(this);
         seekbar();
+        Switch cameraMode = (Switch) findViewById(R.id.cameraModeSwitch);
+        cameraMode.setChecked(false);
+        cameraMode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                videoEnabled = !isChecked;
+            }
+        });
 
     }
 
@@ -80,6 +90,8 @@ public class HoughLines extends AppCompatActivity implements CameraBridgeViewBas
     @Override
     protected void onDestroy(){
         super.onDestroy();
+        cameraFrameGray.release();
+        cameraFrameRGB.release();
         if(javaCameraView!=null)
             javaCameraView.disableView();
     }
@@ -97,14 +109,13 @@ public class HoughLines extends AppCompatActivity implements CameraBridgeViewBas
 
     }
 
-    public void getHaughLines(Mat src){
+    public void getHaughLines(Mat grayscaleImage){
         Mat mBlur = new Mat(height, width, CvType.CV_8SC4);
         Mat mCanny = new Mat(height, width, CvType.CV_8SC4);
-        Imgproc.bilateralFilter(src, mBlur, 5, bilateral_sigma_value, bilateral_sigma_value);
+        Imgproc.bilateralFilter(grayscaleImage, mBlur, 5, bilateral_sigma_value, bilateral_sigma_value);
         Imgproc.Canny(mBlur, mCanny, canny_threshold1, canny_threshold1);
         Imgproc.HoughLinesP(mCanny, this.haughLines, hough_rho, hough_theta * Math.PI/180, hough_threshold, hough_min_line_length, hough_max_line_gap);
-        for (int x = 0; x < haughLines.rows(); x++)
-        {
+        for (int x = 0; x < haughLines.rows(); x++) {
             double[] vec = haughLines.get(x, 0);
             double x1 = vec[0],
                     y1 = vec[1],
@@ -115,15 +126,14 @@ public class HoughLines extends AppCompatActivity implements CameraBridgeViewBas
             double dx = x1 - x2;
             double dy = y1 - y2;
 
-            double dist = Math.sqrt (dx*dx + dy*dy);
+            double dist = Math.sqrt(dx * dx + dy * dy);
 
-            if(dist>100.d)  // show those lines that have length greater than 300
-                Imgproc.line(cameraFrameRGB, start, end, new Scalar(0,255, 0, 255),5);// here initimg is the original image.
-
+            if (dist > 100.d)  // show those lines that have length greater than 300
+                Imgproc.line(cameraFrameRGB, start, end, new Scalar(0, 255, 0, 255), 5);// here initimg is the original image.
         }
+
         mBlur.release();
         mCanny.release();
-        haughLines.release();
     }
 
     @Override
@@ -131,17 +141,14 @@ public class HoughLines extends AppCompatActivity implements CameraBridgeViewBas
         this.width = width;
         this.height = height;
         cameraFrameGray = new Mat(height, width, CvType.CV_8SC4);
-        dest = new Mat(height, width, CvType.CV_8SC4);
         cameraFrameRGB = new Mat(height, width, CvType.CV_8SC4);
         haughLines = new Mat();
     }
 
     @Override
     public void onCameraViewStopped() {
-        cameraFrameGray.release();
-        dest.release();
+
         haughLines.release();
-        cameraFrameRGB.release();
     }
 
     @Override
