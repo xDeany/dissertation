@@ -11,11 +11,20 @@
     tools:context="andydean.opencvcamera.SelectionScreen">
 
     <Button
-        android:text="Hough Lines"
+        android:text="Hough Lines Real Time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="100dp"
-        android:id="@+id/hough_lines_button"
+        android:id="@+id/hough_lines_real_time_button"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"/>
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="63dp" />
+
+    <Button
+        android:text="Hough Lines Image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/hough_lines_image_button"
+        android:layout_below="@+id/hough_lines_real_time_button"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="44dp" />
 </RelativeLayout>

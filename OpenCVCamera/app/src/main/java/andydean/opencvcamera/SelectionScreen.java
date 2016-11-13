@@ -12,13 +12,23 @@ public class SelectionScreen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_selection_screen);
-        Button houghLines = (Button) findViewById(R.id.hough_lines_button);
+        Button houghLinesRT = (Button) findViewById(R.id.hough_lines_real_time_button);
+        Button houghLinesImage = (Button) findViewById(R.id.hough_lines_image_button);
 
-        houghLines.setOnClickListener(new View.OnClickListener()
+        houghLinesRT.setOnClickListener(new View.OnClickListener()
         {
             public void onClick(View v)
             {
-                Intent i = new Intent(SelectionScreen.this, HoughLines.class);
+                Intent i = new Intent(SelectionScreen.this, HoughLinesRealTime.class);
+                startActivity(i);
+            }
+        });
+
+        houghLinesImage.setOnClickListener(new View.OnClickListener()
+        {
+            public void onClick(View v)
+            {
+                Intent i = new Intent(SelectionScreen.this, HoughLinesImage.class);
                 startActivity(i);
             }
         });

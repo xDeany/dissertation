@@ -1,55 +1,62 @@
 package andydean.opencvcamera;
 
-import android.support.v7.app.AppCompatActivity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SurfaceView;
-import android.widget.CompoundButton;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.SeekBar;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-public class HoughLines extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
+import java.io.IOException;
 
-    private static boolean videoEnabled = true;
+public class HoughLinesImage extends AppCompatActivity{
 
-    private static String TAG = "HoughLines";
+
+
+    private static String TAG = "HoughLinesImage";
+    private static int PICK_IMAGE_REQUEST = 1;
 
     private SeekBar seekbar;
     private TextView seekbar_text;
     private String seekBarSetting = "bilateral_sigma_value";
     private String seekBarVariable = "Sigma Value";
-    private int bilateral_sigma_value = 20;
-    private int canny_threshold1 = 50;
-    private int canny_threshold2 = 150;
-    private int hough_rho = 1;
-    private int hough_theta = 1;
-    private int hough_threshold = 50;
-    private int hough_min_line_length = 20;
-    private int hough_max_line_gap = 10;
+    public int bilateral_sigma_value = 20;
+    public int canny_threshold1 = 50;
+    public int canny_threshold2 = 150;
+    public int hough_rho = 1;
+    public int hough_theta = 1;
+    public int hough_threshold = 50;
+    public int hough_min_line_length = 20;
+    public int hough_max_line_gap = 10;
+    public int height;
+    public int width;
 
-    JavaCameraView javaCameraView;
-    Mat cameraFrameRGB, cameraFrameGray, haughLines;
-    int height, width;
+    public Mat imageFromFile, imageWithLines;
+    public Bitmap image;
+
     BaseLoaderCallback mLoaderCallBack = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
             switch(status){
                 case BaseLoaderCallback.SUCCESS:
-                    javaCameraView.enableView();
                     break;
                 default:
                     super.onManagerConnected(status);
@@ -62,38 +69,35 @@ public class HoughLines extends AppCompatActivity implements CameraBridgeViewBas
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_hough_image);
 
-        javaCameraView = (JavaCameraView)findViewById(R.id.java_camera_view);
-        javaCameraView.setVisibility(SurfaceView.VISIBLE);
-        javaCameraView.setCameraIndex(1);
-        javaCameraView.setCvCameraViewListener(this);
+
         seekbar();
-        Switch cameraMode = (Switch) findViewById(R.id.cameraModeSwitch);
-        cameraMode.setChecked(false);
-        cameraMode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                videoEnabled = !isChecked;
+
+        Button loadImageButton = (Button) findViewById(R.id.load_image_button);
+
+        loadImageButton.setOnClickListener(new View.OnClickListener()
+        {
+            public void onClick(View v)
+            {
+                if(imageFromFile != null)
+                    imageFromFile = null;
+                Intent intent = new Intent();
+                // Show only images, no videos or anything else
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                // Always show the chooser (if there are multiple options available)
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
+
             }
         });
-
-    }
-
-    @Override
-    protected void onPause(){
-        super.onPause();
-        if(javaCameraView!=null)
-            javaCameraView.disableView();
     }
 
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        cameraFrameGray.release();
-        cameraFrameRGB.release();
-        if(javaCameraView!=null)
-            javaCameraView.disableView();
+        imageFromFile.release();
+        imageWithLines.release();
     }
 
     @Override
@@ -109,54 +113,38 @@ public class HoughLines extends AppCompatActivity implements CameraBridgeViewBas
 
     }
 
-    public void getHaughLines(Mat grayscaleImage){
-        Mat mBlur = new Mat(height, width, CvType.CV_8SC4);
-        Mat mCanny = new Mat(height, width, CvType.CV_8SC4);
-        Imgproc.bilateralFilter(grayscaleImage, mBlur, 5, bilateral_sigma_value, bilateral_sigma_value);
-        Imgproc.Canny(mBlur, mCanny, canny_threshold1, canny_threshold1);
-        Imgproc.HoughLinesP(mCanny, this.haughLines, hough_rho, hough_theta * Math.PI/180, hough_threshold, hough_min_line_length, hough_max_line_gap);
-        for (int x = 0; x < haughLines.rows(); x++) {
-            double[] vec = haughLines.get(x, 0);
-            double x1 = vec[0],
-                    y1 = vec[1],
-                    x2 = vec[2],
-                    y2 = vec[3];
-            Point start = new Point(x1, y1);
-            Point end = new Point(x2, y2);
-            double dx = x1 - x2;
-            double dy = y1 - y2;
+    public void drawMatToImageView(Mat image){
+        Bitmap bm = Bitmap.createBitmap(image.cols(), image.rows(),Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(image, bm);
+        ImageView imageView = (ImageView) findViewById(R.id.imageView);
+        imageView.setImageBitmap(bm);
+    }
 
-            double dist = Math.sqrt(dx * dx + dy * dy);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
-            if (dist > 100.d)  // show those lines that have length greater than 300
-                Imgproc.line(cameraFrameRGB, start, end, new Scalar(0, 255, 0, 255), 5);// here initimg is the original image.
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+
+            Uri uri = data.getData();
+
+            try {
+                image = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                // Log.d(TAG, String.valueOf(bitmap));
+                ImageView imageView = (ImageView) findViewById(R.id.imageView);
+                imageView.setImageBitmap(image);
+
+                imageFromFile = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8SC4);
+                Utils.bitmapToMat(image, imageFromFile);
+                Mat haughLines = getHaughLines(imageFromFile);
+                drawHaughLines(haughLines, imageFromFile);
+                drawMatToImageView(imageWithLines);
+                haughLines.release();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-
-        mBlur.release();
-        mCanny.release();
-    }
-
-    @Override
-    public void onCameraViewStarted(int width, int height) {
-        this.width = width;
-        this.height = height;
-        cameraFrameGray = new Mat(height, width, CvType.CV_8SC4);
-        cameraFrameRGB = new Mat(height, width, CvType.CV_8SC4);
-        haughLines = new Mat();
-    }
-
-    @Override
-    public void onCameraViewStopped() {
-
-        haughLines.release();
-    }
-
-    @Override
-    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        cameraFrameGray = inputFrame.gray();
-        cameraFrameRGB = inputFrame.rgba();
-        getHaughLines(cameraFrameGray);
-        return cameraFrameRGB;
     }
 
     @Override
@@ -219,9 +207,9 @@ public class HoughLines extends AppCompatActivity implements CameraBridgeViewBas
     }
 
     public void seekbar( ){
-        seekbar = (SeekBar)findViewById(R.id.bilateral_sigma_seekbar);
+        seekbar = (SeekBar)findViewById(R.id.seekbar);
         seekbar.setProgress(bilateral_sigma_value); //Set initial values to the first menu option
-        seekbar_text = (TextView)findViewById(R.id.bilateral_sigma_text);
+        seekbar_text = (TextView)findViewById(R.id.seekbar_text);
         seekbar_text.setText("Current " + seekBarVariable + " = " + seekbar.getProgress() + " / " + seekbar.getMax());
 
 
@@ -271,24 +259,66 @@ public class HoughLines extends AppCompatActivity implements CameraBridgeViewBas
 
                         progress_value = progress;
                         seekbar_text.setText("Current " + seekBarVariable + " = " + progress + " / " + seekbar.getMax());
-                        //Toast.makeText(HoughLines.this, "SeekBar in progress", Toast.LENGTH_LONG).show();
+
+
+
+                        //Toast.makeText(HoughLinesRealTime.this, "SeekBar in progress", Toast.LENGTH_LONG).show();
 
                     }
 
                     @Override
                     public void onStartTrackingTouch(SeekBar seekBar) {
-                        //Toast.makeText(HoughLines.this, "SeekBar start tracking", Toast.LENGTH_LONG).show();
+                        //Toast.makeText(HoughLinesRealTime.this, "SeekBar start tracking", Toast.LENGTH_LONG).show();
 
                     }
 
                     @Override
                     public void onStopTrackingTouch(SeekBar seekBar) {
                         seekbar_text.setText("Current " + seekBarVariable + " = " + progress_value + " / " + seekbar.getMax());
-                        //Toast.makeText(HoughLines.this, "SeekBar stop tracking", Toast.LENGTH_LONG).show();
+                        Mat haughLines = getHaughLines(imageFromFile);
+                        drawHaughLines(haughLines, imageFromFile);
+                        drawMatToImageView(imageWithLines);
+                        haughLines.release();
+                        //Toast.makeText(HoughLinesRealTime.this, "SeekBar stop tracking", Toast.LENGTH_LONG).show();
 
                     }
                 }
         );
     }
+    public Mat getHaughLines(Mat image){
+        Mat grayscaleImage = new Mat(image.height(), image.width(), CvType.CV_8SC4);
+        Mat mBlur = new Mat(height, width, CvType.CV_8SC4);
+        Mat mCanny = new Mat(height, width, CvType.CV_8SC4);
+        Mat haughLines = new Mat();
 
+        Imgproc.cvtColor(image, grayscaleImage, Imgproc.COLOR_RGB2GRAY);
+        Imgproc.bilateralFilter(grayscaleImage, mBlur, 5, bilateral_sigma_value, bilateral_sigma_value);
+        Imgproc.Canny(mBlur, mCanny, canny_threshold1, canny_threshold1);
+        Imgproc.HoughLinesP(mCanny, haughLines, hough_rho, hough_theta * Math.PI/180, hough_threshold, hough_min_line_length, hough_max_line_gap);
+
+        mBlur.release();
+        mCanny.release();
+        return haughLines;
+    }
+
+    public void drawHaughLines(Mat haughLines, Mat image){
+        imageWithLines = image.clone();
+        //Grab all lines found from haughlines
+        for (int x = 0; x < haughLines.rows(); x++) {
+            double[] vec = haughLines.get(x, 0);
+            double x1 = vec[0],
+                    y1 = vec[1],
+                    x2 = vec[2],
+                    y2 = vec[3];
+            Point start = new Point(x1, y1);
+            Point end = new Point(x2, y2);
+            double dx = x1 - x2;
+            double dy = y1 - y2;
+
+            double dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist > 100.d)  // show those lines that have length greater than 300
+                Imgproc.line(imageWithLines, start, end, new Scalar(0, 255, 0, 255), 5);
+        }
+    }
 }
