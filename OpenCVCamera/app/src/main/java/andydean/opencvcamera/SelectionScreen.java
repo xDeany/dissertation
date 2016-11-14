@@ -19,7 +19,7 @@ public class SelectionScreen extends AppCompatActivity {
         {
             public void onClick(View v)
             {
-                Intent i = new Intent(SelectionScreen.this, HoughLinesRealTime.class);
+                Intent i = new Intent(SelectionScreen.this, RealTimeAnalysis.class);
                 startActivity(i);
             }
         });
@@ -28,7 +28,7 @@ public class SelectionScreen extends AppCompatActivity {
         {
             public void onClick(View v)
             {
-                Intent i = new Intent(SelectionScreen.this, HoughLinesImage.class);
+                Intent i = new Intent(SelectionScreen.this, ImageAnalysis.class);
                 startActivity(i);
             }
         });

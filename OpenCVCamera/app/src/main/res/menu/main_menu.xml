@@ -4,6 +4,8 @@
         android:title="Bilateral Filter">
 
         <menu>
+            <item android:title ="Filter Diameter"
+                android:id="@+id/bilateral_diameter" />
             <item android:title ="Sigma Value"
                 android:id="@+id/bilateral_sigma" />
             </menu>
@@ -31,9 +33,9 @@
             <item android:title ="Threshold"
                 android:id="@+id/hough_threshold" />
             <item android:title ="Min Line Length"
-                android:id="@+id/hough_line_length" />
+                android:id="@+id/hough_min_line_length" />
             <item android:title ="Max Line Gap"
-                android:id="@+id/hough_line_gap" />
+                android:id="@+id/hough_max_line_gap" />
         </menu>
 
     </item>

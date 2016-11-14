@@ -2,19 +2,19 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/activity_main"
+    android:id="@+id/activity_hough_image"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="andydean.opencvcamera.HoughLinesRealTime">
+    tools:context="andydean.opencvcamera.ImageAnalysis">
 
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
 
-    <org.opencv.android.JavaCameraView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/java_camera_view"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:id="@+id/imageView" />
 
     <SeekBar
         android:layout_width="match_parent"
@@ -29,12 +29,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/seekbar_text"
-        android:textColor="@android:color/white"
-        android:layout_alignBaseline="@+id/cameraModeSwitch"
-        android:layout_alignBottom="@+id/cameraModeSwitch"
+        android:textColor="@android:color/black"
+        android:layout_above="@+id/seekbar"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginLeft="17dp"
-        android:layout_marginStart="17dp" />
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:text="Load Image"
+        android:layout_width="wrap_content"
+        android:id="@+id/load_image_button"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/seekbar"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
 </RelativeLayout>
