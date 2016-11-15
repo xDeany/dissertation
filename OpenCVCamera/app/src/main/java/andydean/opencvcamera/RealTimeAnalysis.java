@@ -54,7 +54,7 @@ public class RealTimeAnalysis extends AppCompatActivity implements CameraBridgeV
 
         javaCameraView = (JavaCameraView) findViewById(R.id.java_camera_view);
         javaCameraView.setVisibility(SurfaceView.VISIBLE);
-        javaCameraView.setCameraIndex(1);
+        javaCameraView.setCameraIndex(0);
         javaCameraView.setCvCameraViewListener(this);
 
         detector = new HoughLinesDetector();

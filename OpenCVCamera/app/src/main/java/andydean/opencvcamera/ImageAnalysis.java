@@ -27,8 +27,6 @@ import java.io.IOException;
 
 public class ImageAnalysis extends AppCompatActivity{
 
-
-
     private static String TAG = "ImageAnalysis";
     private static int PICK_IMAGE_REQUEST = 1;
 
@@ -40,8 +38,6 @@ public class ImageAnalysis extends AppCompatActivity{
 
     public Mat imageFromFile, imageWithLines;
     public Bitmap image;
-
-
 
     BaseLoaderCallback mLoaderCallBack = new BaseLoaderCallback(this) {
         @Override
@@ -87,8 +83,11 @@ public class ImageAnalysis extends AppCompatActivity{
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        imageFromFile.release();
-        imageWithLines.release();
+        if(imageFromFile != null)
+            imageFromFile.release();
+
+        if(imageWithLines != null)
+            imageWithLines.release();
     }
 
     @Override
@@ -170,29 +169,26 @@ public class ImageAnalysis extends AppCompatActivity{
                         seekBar.setMax(seekbar_var.getMax());
                         progress_value = progress;
                         seekbar_text.setText("Current " + seekbar_var.getName() + " = " + progress + " / " + seekbar.getMax());
-
-
-
                         //Toast.makeText(RealTimeAnalysis.this, "SeekBar in progress", Toast.LENGTH_LONG).show();
-
                     }
 
                     @Override
                     public void onStartTrackingTouch(SeekBar seekBar) {
                         //Toast.makeText(RealTimeAnalysis.this, "SeekBar start tracking", Toast.LENGTH_LONG).show();
-
                     }
 
                     @Override
                     public void onStopTrackingTouch(SeekBar seekBar) {
                         seekbar_text.setText("Current " + seekbar_var.getName() + " = " + progress_value + " / " + seekbar.getMax());
-                        Toast.makeText(ImageAnalysis.this, "Detecting Cube", Toast.LENGTH_LONG).show();
-                        seekbar_var.setVal(progress_value);
-                        imageWithLines = detector.detectCube(imageFromFile);
-                        drawMatToImageView(imageWithLines);
-                        Toast.makeText(ImageAnalysis.this, "Cube Detected", Toast.LENGTH_LONG).show();
-                        //Toast.makeText(RealTimeAnalysis.this, "SeekBar stop tracking", Toast.LENGTH_LONG).show();
 
+                        seekbar_var.setVal(progress_value);
+                        if(imageFromFile != null) {
+                            Toast.makeText(ImageAnalysis.this, "Detecting Cube", Toast.LENGTH_LONG).show();
+                            imageWithLines = detector.detectCube(imageFromFile);
+                            drawMatToImageView(imageWithLines);
+                            Toast.makeText(ImageAnalysis.this, "Cube Detected", Toast.LENGTH_LONG).show();
+                        }
+                        //Toast.makeText(RealTimeAnalysis.this, "SeekBar stop tracking", Toast.LENGTH_LONG).show();
                     }
                 }
         );

@@ -36,6 +36,10 @@
                 android:id="@+id/hough_min_line_length" />
             <item android:title ="Max Line Gap"
                 android:id="@+id/hough_max_line_gap" />
+            <item android:title ="Angle Precision"
+                android:id="@+id/hough_angle_precision" />
+            <item android:title = "Min Number Parallel Lines"
+                android:id="@+id/hough_min_num_parallel_lines" />
         </menu>
 
     </item>

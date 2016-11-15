@@ -6,6 +6,12 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * Created by Andy on 14/11/2016.
  */
@@ -21,8 +27,11 @@ public class HoughLinesDetector extends CubeDetector{
         variables.put(R.id.hough_rho, new SettingsVariable("hough_rho", 1, 20));
         variables.put(R.id.hough_theta, new SettingsVariable("hough_theta", 1, 20));
         variables.put(R.id.hough_threshold, new SettingsVariable("hough_threshold", 50, 200));
-        variables.put(R.id.hough_min_line_length, new SettingsVariable("hough_min_line_length", 20, 50));
+        variables.put(R.id.hough_min_line_length, new SettingsVariable("hough_min_line_length", 20, 500));
         variables.put(R.id.hough_max_line_gap, new SettingsVariable("hough_max_line_gap", 10, 20));
+        variables.put(R.id.hough_angle_precision, new SettingsVariable("hough_angle_precision", 5, 30));
+        variables.put(R.id.hough_min_num_parallel_lines, new SettingsVariable("hough_min_num_parallel_lines", 4, 30));
+
 
     }
 
@@ -41,12 +50,29 @@ public class HoughLinesDetector extends CubeDetector{
 
         mBlur.release();
         mCanny.release();
+        grayscaleImage.release();
         return houghLines;
     }
 
     private Mat drawHoughLines(Mat houghLines, Mat image){
         Mat imageWithLines = image.clone();
-        //Grab all lines found from houghlines
+
+        class Vector{
+            //Coords of start and end points
+            public Point start;
+            public Point end;
+            public int angle;
+
+            Vector(Point start, Point end, int angle){
+                this.start = start;
+                this.end = end;
+                this.angle = angle;
+            }
+        }
+
+        List<List<Vector>> bin = new ArrayList<List<Vector>>();
+
+        //Grab all lines found from houghlines and place them into gradient bins
         for (int x = 0; x < houghLines.rows(); x++) {
             double[] vec = houghLines.get(x, 0);
             double x1 = vec[0],
@@ -55,14 +81,57 @@ public class HoughLinesDetector extends CubeDetector{
                     y2 = vec[3];
             Point start = new Point(x1, y1);
             Point end = new Point(x2, y2);
+
             double dx = x1 - x2;
             double dy = y1 - y2;
 
             double dist = Math.sqrt(dx * dx + dy * dy);
+            double grad = dy/dx;
+            double angle = Math.toDegrees(Math.atan(grad)) + 90;
+            int precision = variables.get(R.id.hough_angle_precision).getVal();
+            double roundedAngle = precision * (Math.round(angle/precision));
+            Vector vector = new Vector(start, end, (int) roundedAngle);
 
-            if (dist > 100.d)  // show those lines that have length greater than 300
-                Imgproc.line(imageWithLines, start, end, new Scalar(0, 255, 0, 255), 5);
+            if(bin.size() == 0){
+                //Start first list
+                ArrayList<Vector> lines = new ArrayList<Vector>();
+                lines.add(vector);
+                bin.add(lines);
+            }else {
+                //Try to find a list with the same angle
+                Iterator<List<Vector>> binsItr = bin.iterator();
+                boolean noMatch = true;
+                while (binsItr.hasNext() && noMatch) {
+                    List<Vector> parallelLines = binsItr.next();
+                    Iterator<Vector> lines = parallelLines.iterator();
+                    if (lines.next().angle == roundedAngle) {
+                        parallelLines.add(vector);
+                        noMatch = false;
+                    }
+                }
+                //Add new list if no matching angles were found
+                if(noMatch){
+                    ArrayList<Vector> lines = new ArrayList<Vector>();
+                    lines.add(vector);
+                    bin.add(lines);
+                }
+            }
         }
+
+        Iterator<List<Vector>> binsItr = bin.iterator();
+
+        while(binsItr.hasNext()){
+            List<Vector> parallelLines = binsItr.next();
+            if(parallelLines.size() >= variables.get(R.id.hough_min_num_parallel_lines).getVal()){
+                Iterator<Vector> linesItr = parallelLines.iterator();
+                while(linesItr.hasNext()){
+                    Vector line = linesItr.next();
+                    Imgproc.line(imageWithLines, line.start, line.end, new Scalar(255-line.angle, line.angle, 0, 255), 5);
+                }
+            }
+
+        }
+
         return imageWithLines;
     }
 
