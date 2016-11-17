@@ -1,51 +1,105 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/bilateral_filter"
-        android:title="Bilateral Filter">
-
+    <item android:id="@+id/hough_filter_1"
+        android:title="Hough Filter 1">
         <menu>
-            <item android:title ="Filter Diameter"
-                android:id="@+id/bilateral_diameter" />
-            <item android:title ="Sigma Value"
-                android:id="@+id/bilateral_sigma" />
-            </menu>
+            <item android:id="@+id/bilateral_filter"
+                android:title="Bilateral Filter">
 
-    </item>
-    <item android:id="@+id/canny_filter"
-        android:title="Canny Filter">
+                <menu>
+                    <item android:title ="Filter Diameter"
+                        android:id="@+id/bilateral_diameter" />
+                    <item android:title ="Sigma Value"
+                        android:id="@+id/bilateral_sigma" />
+                    </menu>
 
-        <menu>
-            <item android:title ="Threshold 1"
-                android:id="@+id/canny_threshold_1" />
-            <item android:title ="Threshold 2"
-                android:id="@+id/canny_threshold_2" />
+            </item>
+            <item android:id="@+id/canny_filter"
+                android:title="Canny Filter">
+
+                <menu>
+                    <item android:title ="Threshold 1"
+                        android:id="@+id/canny_threshold_1" />
+                    <item android:title ="Threshold 2"
+                        android:id="@+id/canny_threshold_2" />
+                </menu>
+
+            </item>
+            <item android:id="@+id/hough_lines"
+                android:title="Hough Lines" >
+
+                <menu>
+                    <item android:title ="Rho Precision"
+                        android:id="@+id/hough_rho" />
+                    <item android:title ="Theta Precision"
+                        android:id="@+id/hough_theta" />
+                    <item android:title ="Threshold"
+                        android:id="@+id/hough_threshold" />
+                    <item android:title ="Min Line Length"
+                        android:id="@+id/hough_min_line_length" />
+                    <item android:title ="Max Line Gap"
+                        android:id="@+id/hough_max_line_gap" />
+                    <item android:title ="Angle Precision"
+                        android:id="@+id/hough_angle_precision" />
+                    <item android:title = "Min Number Parallel Lines"
+                        android:id="@+id/hough_min_num_parallel_lines" />
+                    <item android:title = "Min Line Separation"
+                        android:id="@+id/hough_min_line_separation" />
+                    <item android:title = "Line separation error bound"
+                        android:id="@+id/hough_line_separation_error" />
+                </menu>
+            </item>
         </menu>
-
     </item>
-    <item android:id="@+id/hough_lines"
-        android:title="Hough Lines" >
-
+    <item android:id="@+id/hough_filter_2"
+        android:title="Hough Filter 2">
         <menu>
-            <item android:title ="Rho Precision"
-                android:id="@+id/hough_rho" />
-            <item android:title ="Theta Precision"
-                android:id="@+id/hough_theta" />
-            <item android:title ="Threshold"
-                android:id="@+id/hough_threshold" />
-            <item android:title ="Min Line Length"
-                android:id="@+id/hough_min_line_length" />
-            <item android:title ="Max Line Gap"
-                android:id="@+id/hough_max_line_gap" />
-            <item android:title ="Angle Precision"
-                android:id="@+id/hough_angle_precision" />
-            <item android:title = "Min Number Parallel Lines"
-                android:id="@+id/hough_min_num_parallel_lines" />
-            <item android:title = "Min Line Separation"
-                android:id="@+id/hough_min_line_separation" />
-            <item android:title = "Line separation error bound"
-                android:id="@+id/hough_line_separation_error" />
+            <item android:id="@+id/bilateral_filter2"
+                android:title="Bilateral Filter">
+
+                <menu>
+                    <item android:title ="Filter Diameter"
+                        android:id="@+id/bilateral_diameter2" />
+                    <item android:title ="Sigma Value"
+                        android:id="@+id/bilateral_sigma2" />
+                </menu>
+
+            </item>
+            <item android:id="@+id/canny_filter2"
+                android:title="Canny Filter">
+
+                <menu>
+                    <item android:title ="Threshold 1"
+                        android:id="@+id/canny_threshold_12" />
+                    <item android:title ="Threshold 2"
+                        android:id="@+id/canny_threshold_22" />
+                </menu>
+
+            </item>
+            <item android:id="@+id/hough_lines2"
+                android:title="Hough Lines" >
+
+                <menu>
+                    <item android:title ="Rho Precision"
+                        android:id="@+id/hough_rho2" />
+                    <item android:title ="Theta Precision"
+                        android:id="@+id/hough_theta2" />
+                    <item android:title ="Threshold"
+                        android:id="@+id/hough_threshold2" />
+                    <item android:title ="Min Line Length"
+                        android:id="@+id/hough_min_line_length2" />
+                    <item android:title ="Max Line Gap"
+                        android:id="@+id/hough_max_line_gap2" />
+                    <item android:title ="Angle Precision"
+                        android:id="@+id/hough_angle_precision2" />
+                    <item android:title = "Min Number Parallel Lines"
+                        android:id="@+id/hough_min_num_parallel_lines2" />
+                    <item android:title = "Min Line Separation"
+                        android:id="@+id/hough_min_line_separation2" />
+                    <item android:title = "Line separation error bound"
+                        android:id="@+id/hough_line_separation_error2" />
+                </menu>
+            </item>
         </menu>
-
     </item>
-
 </menu>

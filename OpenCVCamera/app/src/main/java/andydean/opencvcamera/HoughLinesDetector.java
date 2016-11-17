@@ -6,6 +6,7 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
@@ -54,6 +55,15 @@ public class HoughLinesDetector extends CubeDetector{
         variables.put(R.id.hough_min_num_parallel_lines, new SettingsVariable("hough_min_num_parallel_lines", 4, 30));
         variables.put(R.id.hough_min_line_separation, new SettingsVariable("hough_min_line_separation", 4, 100));
         variables.put(R.id.hough_line_separation_error, new SettingsVariable("hough_line_separation_error", 4, 100));
+        variables.put(R.id.bilateral_diameter2, new SettingsVariable("bilateral_diameter", 1, 50));
+        variables.put(R.id.bilateral_sigma2, new SettingsVariable("bilateral_sigma_value", 20, 100));
+        variables.put(R.id.canny_threshold_12, new SettingsVariable("canny_threshold1", 50, 400));
+        variables.put(R.id.canny_threshold_22, new SettingsVariable("canny_threshold2", 150, 20));
+        variables.put(R.id.hough_rho2, new SettingsVariable("hough_rho", 1, 20));
+        variables.put(R.id.hough_theta2, new SettingsVariable("hough_theta", 1, 20));
+        variables.put(R.id.hough_threshold2, new SettingsVariable("hough_threshold", 50, 200));
+        variables.put(R.id.hough_min_line_length2, new SettingsVariable("hough_min_line_length", 20, 500));
+        variables.put(R.id.hough_max_line_gap2, new SettingsVariable("hough_max_line_gap", 10, 20));
 
     }
 
@@ -76,13 +86,59 @@ public class HoughLinesDetector extends CubeDetector{
         return houghLines;
     }
 
-    private Mat drawHoughLines(Mat houghLines, Mat image){
+    private Mat getHoughLines2(Mat image){
+        int height = image.height();
+        int width = image.width();
+        //Mat grayscaleImage = new Mat(height, width, CvType.CV_8SC4);
+        Mat mBlur = new Mat(height, width, CvType.CV_8UC1);
+        //Mat mCanny = new Mat(height, width, CvType.CV_8UC1);
+        Mat houghLines = new Mat();
+        int kernel = variables.get(R.id.bilateral_diameter2).getVal();
+
+        //Imgproc.cvtColor(image, grayscaleImage, Imgproc.COLOR_RGB2GRAY);
+        Imgproc.GaussianBlur(image, mBlur, new Size(kernel, kernel), variables.get(R.id.bilateral_sigma2).getVal());
+        //Imgproc.Canny(mBlur, mCanny, variables.get(R.id.canny_threshold_12).getVal(), variables.get(R.id.canny_threshold_22).getVal());
+        Imgproc.HoughLinesP(image, houghLines, variables.get(R.id.hough_rho2).getVal(), variables.get(R.id.hough_theta2).getVal() * Math.PI/180, variables.get(R.id.hough_threshold2).getVal(), variables.get(R.id.hough_min_line_length2).getVal(), variables.get(R.id.hough_max_line_gap).getVal());
+
+        mBlur.release();
+        //mCanny.release();
+        //grayscaleImage.release();
+        return houghLines;
+    }
+
+    /**
+     * From the hough lines detected, it trys to analyse them to detect small squares/centres of the squares of each piece of the cube
+     * @param houghLines
+     * @param image
+     * @return imageWithLines
+     */
+    private Mat analyseHoughLines(Mat houghLines, Mat image){
         Mat imageWithLines = image.clone();
 
         List<List<Vector>> parallelLinesBin = findParallelLines(houghLines);
         imageWithLines = drawParallelLines(parallelLinesBin, imageWithLines);
         List<Pair<Vector, Vector>> pairsOfLines = findPairsOfParallelLines(parallelLinesBin);
         imageWithLines = drawConnectingPairs(pairsOfLines, imageWithLines);
+
+        return imageWithLines;
+    }
+
+    private Mat drawHoughLines(Mat houghLines, Mat image){
+        Mat imageWithLines = image.clone();
+        for(int x = 0; x < houghLines.rows(); x++){
+            double[] vec = houghLines.get(x,0);
+            double x1 = vec[0],
+                    y1 = vec[1],
+                    x2 = vec[2],
+                    y2 = vec[3];
+
+            Point start = new Point(x1, y1);
+            Point end = new Point(x2, y2);
+
+            Imgproc.line(imageWithLines, start, end, new Scalar(255), 5);
+
+        }
+
 
         return imageWithLines;
     }
@@ -252,8 +308,18 @@ public class HoughLinesDetector extends CubeDetector{
     @Override
     public Mat detectCube(Mat image) {
         Mat houghLines = getHoughLines(image);
-        image = drawHoughLines(houghLines, image);
+        Mat houghMat = new Mat(image.height(), image.width(),CvType.CV_8UC1, new Scalar(0));
+        houghMat = drawHoughLines(houghLines, houghMat);
+        houghLines = getHoughLines2(houghMat);
+        houghMat.setTo(new Scalar(0));
+        houghMat = drawHoughLines(houghLines, houghMat);
+
+        image = analyseHoughLines(houghLines, image);
+        //houghMat.setTo(new Scalar(0));
+        //houghMat = drawHoughLines(houghLines, houghMat);
+        houghMat.release();
         houghLines.release();
+
         return image;
     }
 
