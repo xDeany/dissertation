@@ -40,6 +40,10 @@
                 android:id="@+id/hough_angle_precision" />
             <item android:title = "Min Number Parallel Lines"
                 android:id="@+id/hough_min_num_parallel_lines" />
+            <item android:title = "Min Line Separation"
+                android:id="@+id/hough_min_line_separation" />
+            <item android:title = "Line separation error bound"
+                android:id="@+id/hough_line_separation_error" />
         </menu>
 
     </item>
