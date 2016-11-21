@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/general_processing"
+        android:title="General Processing">
+        <menu>
+            <item android:id="@+id/downsample_ratio"
+                android:title="Downsample Ratio"/>
+        </menu>
+    </item>
+
     <item android:id="@+id/bilateral_filter"
         android:title="Bilateral Filter">
 

@@ -6,6 +6,7 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class HoughLinesDetector extends CubeDetector{
 
     public HoughLinesDetector(){
 
+        variables.put(R.id.downsample_ratio, new SettingsVariable("downsample_ratio", 4, 20));
         variables.put(R.id.bilateral_diameter, new SettingsVariable("bilateral_diameter", 5, 50));
         variables.put(R.id.bilateral_sigma, new SettingsVariable("bilateral_sigma_value", 20, 100));
         variables.put(R.id.canny_threshold_1, new SettingsVariable("canny_threshold1", 50, 400));
@@ -78,9 +80,8 @@ public class HoughLinesDetector extends CubeDetector{
 
     private Mat drawHoughLines(Mat houghLines, Mat image){
         Mat imageWithLines = image.clone();
-
         List<List<Vector>> parallelLinesBin = findParallelLines(houghLines);
-        imageWithLines = drawParallelLines(parallelLinesBin, imageWithLines);
+        imageWithLines = drawOnlyParallelLines(parallelLinesBin, imageWithLines);
         List<Pair<Vector, Vector>> pairsOfLines = findPairsOfParallelLines(parallelLinesBin);
         imageWithLines = drawConnectingPairs(pairsOfLines, imageWithLines);
 
@@ -155,7 +156,7 @@ public class HoughLinesDetector extends CubeDetector{
      * @param parallelLinesBin, image
      * @return image
      */
-    private Mat drawParallelLines(List<List<Vector>> parallelLinesBin, Mat image) {
+    private Mat drawOnlyParallelLines(List<List<Vector>> parallelLinesBin, Mat image) {
 
         Iterator<List<Vector>> binsItr = parallelLinesBin.iterator();
         while(binsItr.hasNext()){
@@ -249,12 +250,63 @@ public class HoughLinesDetector extends CubeDetector{
         return dist;
     }
 
+    private Mat downscale(Mat image, int ratio){
+        if(ratio > 2) {
+            int divisor = (int) Math.pow(2,ratio-1);
+            Mat downscaled = new Mat(image.rows() / divisor, image.cols() / divisor, image.type());
+            Mat toDownscale = downscale(image, ratio - 1);
+            int ssizeW = toDownscale.width();
+            int ssizeH = toDownscale.height();
+            int testW = downscaled.width()*2 - ssizeW;
+            int testH = downscaled.height()*2 - ssizeH;
+            Imgproc.pyrDown(toDownscale, downscaled, new Size(downscaled.cols(), downscaled.rows()));
+            toDownscale.release();
+            return downscaled;
+        }else if(ratio == 2) {
+            Mat temp = new Mat(image.rows()/2, image.cols()/2, image.type());
+            Imgproc.pyrDown(image, temp, new Size(image.cols()/2, image.rows()/2));
+            return temp;
+        }
+
+        return image;
+    }
+
+    private Mat upscale(Mat image, int ratio){
+        if(ratio > 2) {
+            int multiplier = (int) Math.pow(2, ratio-1);
+            Mat upscaled = new Mat(image.rows() * multiplier, image.cols() * multiplier, image.type());
+            Mat temp = upscale(image, ratio - 1);
+            Imgproc.pyrUp(temp, upscaled, new Size(upscaled.cols(), upscaled.rows()));
+            temp.release();
+            return upscaled;
+        }else if(ratio == 2) {
+            Mat temp = new Mat(image.rows()*2, image.cols()*2, image.type());
+            Imgproc.pyrUp(image, temp, new Size(image.cols()*2, image.rows()*2));
+            return temp;
+        }
+
+        return image;
+    }
+
     @Override
     public Mat detectCube(Mat image) {
-        Mat houghLines = getHoughLines(image);
-        image = drawHoughLines(houghLines, image);
+        Mat imageToDrawOn = image.clone();
+        int ratio = variables.get(R.id.downsample_ratio).getVal();
+
+        Mat houghLines;
+
+        Mat downscaled = downscale(imageToDrawOn, ratio);
+
+        houghLines = getHoughLines(downscaled);
+        downscaled = drawHoughLines(houghLines, downscaled);
+
+        imageToDrawOn = upscale(downscaled, ratio);
+
+
+
         houghLines.release();
-        return image;
+        downscaled.release();
+        return imageToDrawOn;
     }
 
     @Override

@@ -180,7 +180,6 @@ public class ImageAnalysis extends AppCompatActivity{
                     @Override
                     public void onStopTrackingTouch(SeekBar seekBar) {
                         seekbar_text.setText("Current " + seekbar_var.getName() + " = " + progress_value + " / " + seekbar.getMax());
-
                         seekbar_var.setVal(progress_value);
                         if(imageFromFile != null) {
                             Toast.makeText(ImageAnalysis.this, "Detecting Cube", Toast.LENGTH_LONG).show();
