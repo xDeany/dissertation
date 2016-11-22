@@ -291,9 +291,9 @@ public class HoughLinesDetector extends CubeDetector{
 
     @Override
     public Mat detectCube(Mat image, String imageToReturn) {
-        int ratio = variables.get(R.id.downsample_ratio).getVal();
+        int ratio = variables.get(R.id.downsample_ratio).getVal() - 1;
 
-        Mat downscaled = downscale(image, ratio-1);
+        Mat downscaled = downscale(image, ratio);
         Mat grayscaleImage = toGrayscale(downscaled);
         Mat mBlur = toBlur(grayscaleImage);
         Mat mCanny = toCanny(mBlur);
@@ -317,7 +317,7 @@ public class HoughLinesDetector extends CubeDetector{
                 toReturn = upscale(mCanny.clone(), ratio);
                 break;
             case "hough_lines_only":
-                Mat blankCanvas = new Mat(image.rows(), image.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
+                Mat blankCanvas = new Mat(downscaled.rows(), downscaled.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
                 downscaledWithOverlay = drawHoughLines(houghLines, blankCanvas);
                 imageWithOverlay = upscale(downscaledWithOverlay, ratio);
                 toReturn = imageWithOverlay.clone();
