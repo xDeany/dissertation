@@ -59,22 +59,27 @@ public class HoughLinesDetector extends CubeDetector{
 
     }
 
-    private Mat getHoughLines(Mat image){
-        int height = image.height();
-        int width = image.width();
-        Mat grayscaleImage = new Mat(height, width, CvType.CV_8SC4);
-        Mat mBlur = new Mat(height, width, CvType.CV_8SC4);
-        Mat mCanny = new Mat(height, width, CvType.CV_8SC4);
-        Mat houghLines = new Mat();
-
+    private Mat toGrayscale(Mat image){
+        Mat grayscaleImage = new Mat(image.height(), image.width(), image.type());
         Imgproc.cvtColor(image, grayscaleImage, Imgproc.COLOR_RGB2GRAY);
-        Imgproc.bilateralFilter(grayscaleImage, mBlur, variables.get(R.id.bilateral_diameter).getVal(), variables.get(R.id.bilateral_sigma).getVal(), variables.get(R.id.bilateral_sigma).getVal());
-        Imgproc.Canny(mBlur, mCanny, variables.get(R.id.canny_threshold_1).getVal(), variables.get(R.id.canny_threshold_2).getVal());
-        Imgproc.HoughLinesP(mCanny, houghLines, variables.get(R.id.hough_rho).getVal(), variables.get(R.id.hough_theta).getVal() * Math.PI/180, variables.get(R.id.hough_threshold).getVal(), variables.get(R.id.hough_min_line_length).getVal(), variables.get(R.id.hough_max_line_gap).getVal());
+        return grayscaleImage;
+    }
 
-        mBlur.release();
-        mCanny.release();
-        grayscaleImage.release();
+    private Mat toBlur(Mat image){
+        Mat blurredImage = new Mat(image.height(), image.width(), image.type());
+        Imgproc.bilateralFilter(image, blurredImage, variables.get(R.id.bilateral_diameter).getVal(), variables.get(R.id.bilateral_sigma).getVal(), variables.get(R.id.bilateral_sigma).getVal());
+        return blurredImage;
+    }
+
+    private Mat toCanny(Mat image){
+        Mat cannyImage = new Mat(image.height(), image.width(), image.type());
+        Imgproc.Canny(image, cannyImage, variables.get(R.id.canny_threshold_1).getVal(), variables.get(R.id.canny_threshold_2).getVal());
+        return cannyImage;
+    }
+
+    private Mat toHoughLines(Mat image){
+        Mat houghLines = new Mat();
+        Imgproc.HoughLinesP(image, houghLines, variables.get(R.id.hough_rho).getVal(), variables.get(R.id.hough_theta).getVal() * Math.PI/180, variables.get(R.id.hough_threshold).getVal(), variables.get(R.id.hough_min_line_length).getVal(), variables.get(R.id.hough_max_line_gap).getVal());
         return houghLines;
     }
 
@@ -251,62 +256,89 @@ public class HoughLinesDetector extends CubeDetector{
     }
 
     private Mat downscale(Mat image, int ratio){
-        if(ratio > 2) {
-            int divisor = (int) Math.pow(2,ratio-1);
+        if(ratio > 1) {
+            int divisor = (int) Math.pow(2,ratio);
             Mat downscaled = new Mat(image.rows() / divisor, image.cols() / divisor, image.type());
-            Mat toDownscale = downscale(image, ratio - 1);
-            int ssizeW = toDownscale.width();
-            int ssizeH = toDownscale.height();
-            int testW = downscaled.width()*2 - ssizeW;
-            int testH = downscaled.height()*2 - ssizeH;
+            Mat toDownscale = downscale(image, ratio-1);
             Imgproc.pyrDown(toDownscale, downscaled, new Size(downscaled.cols(), downscaled.rows()));
             toDownscale.release();
             return downscaled;
-        }else if(ratio == 2) {
+        }else if(ratio == 1) {
             Mat temp = new Mat(image.rows()/2, image.cols()/2, image.type());
             Imgproc.pyrDown(image, temp, new Size(image.cols()/2, image.rows()/2));
             return temp;
         }
 
-        return image;
+        return image.clone();
     }
 
     private Mat upscale(Mat image, int ratio){
-        if(ratio > 2) {
-            int multiplier = (int) Math.pow(2, ratio-1);
+        if(ratio > 1) {
+            int multiplier = (int) Math.pow(2, ratio);
             Mat upscaled = new Mat(image.rows() * multiplier, image.cols() * multiplier, image.type());
-            Mat temp = upscale(image, ratio - 1);
+            Mat temp = upscale(image, ratio-1);
             Imgproc.pyrUp(temp, upscaled, new Size(upscaled.cols(), upscaled.rows()));
             temp.release();
             return upscaled;
-        }else if(ratio == 2) {
+        }else if(ratio == 1) {
             Mat temp = new Mat(image.rows()*2, image.cols()*2, image.type());
             Imgproc.pyrUp(image, temp, new Size(image.cols()*2, image.rows()*2));
             return temp;
         }
 
-        return image;
+        return image.clone();
     }
 
     @Override
-    public Mat detectCube(Mat image) {
-        Mat imageToDrawOn = image.clone();
+    public Mat detectCube(Mat image, String imageToReturn) {
         int ratio = variables.get(R.id.downsample_ratio).getVal();
 
-        Mat houghLines;
+        Mat downscaled = downscale(image, ratio-1);
+        Mat grayscaleImage = toGrayscale(downscaled);
+        Mat mBlur = toBlur(grayscaleImage);
+        Mat mCanny = toCanny(mBlur);
+        Mat houghLines = toHoughLines(mCanny);
+        Mat downscaledWithOverlay = drawHoughLines(houghLines, downscaled);
+        Mat imageWithOverlay = upscale(downscaledWithOverlay, ratio);
+        Mat toReturn;
 
-        Mat downscaled = downscale(imageToDrawOn, ratio);
 
-        houghLines = getHoughLines(downscaled);
-        downscaled = drawHoughLines(houghLines, downscaled);
+        switch(imageToReturn){
+            case "original_image":
+                toReturn = image.clone();
+                break;
+            case "grayscale_image":
+                toReturn = upscale(grayscaleImage.clone(), ratio);
+                break;
+            case "blurred_image":
+                toReturn = upscale(mBlur.clone(), ratio);
+                break;
+            case "canny_edges":
+                toReturn = upscale(mCanny.clone(), ratio);
+                break;
+            case "hough_lines_only":
+                Mat blankCanvas = new Mat(image.rows(), image.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
+                downscaledWithOverlay = drawHoughLines(houghLines, blankCanvas);
+                imageWithOverlay = upscale(downscaledWithOverlay, ratio);
+                toReturn = imageWithOverlay.clone();
+                break;
+            case "hough_lines_overlay":
+                toReturn = imageWithOverlay.clone();
+                break;
+            default:
+                toReturn = image.clone();
+                break;
+        }
 
-        imageToDrawOn = upscale(downscaled, ratio);
-
-
-
+        mBlur.release();
+        mCanny.release();
+        grayscaleImage.release();
         houghLines.release();
         downscaled.release();
-        return imageToDrawOn;
+        downscaledWithOverlay.release();
+        imageWithOverlay.release();
+
+        return toReturn;
     }
 
     @Override

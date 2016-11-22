@@ -15,5 +15,5 @@ public interface CubeDetectorInterface {
 
     public SettingsVariable getInitialVar();
 
-    public Mat detectCube(Mat image);
+    public Mat detectCube(Mat image, String imageToReturn);
 }

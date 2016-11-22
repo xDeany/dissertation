@@ -10,9 +10,11 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,14 +27,16 @@ import org.opencv.core.Mat;
 
 import java.io.IOException;
 
-public class ImageAnalysis extends AppCompatActivity{
+public class ImageAnalysis extends AppCompatActivity implements AdapterView.OnItemSelectedListener{
 
     private static String TAG = "ImageAnalysis";
     private static int PICK_IMAGE_REQUEST = 1;
 
     private SeekBar seekbar;
+    private Spinner spinner;
     private TextView seekbar_text;
     private SettingsVariable seekbar_var;
+    private String imageToReturn;
 
     private CubeDetector detector;
 
@@ -60,24 +64,9 @@ public class ImageAnalysis extends AppCompatActivity{
 
         detector = new HoughLinesDetector();
         seekbar();
-
-        Button loadImageButton = (Button) findViewById(R.id.load_image_button);
-
-        loadImageButton.setOnClickListener(new View.OnClickListener()
-        {
-            public void onClick(View v)
-            {
-                if(imageFromFile != null)
-                    imageFromFile = null;
-                Intent intent = new Intent();
-                // Show only images, no videos or anything else
-                intent.setType("image/*");
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                // Always show the chooser (if there are multiple options available)
-                startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
-
-            }
-        });
+        spinner = (Spinner) findViewById(R.id.image_spinner);
+        spinner.setOnItemSelectedListener(this);
+        button();
     }
 
     @Override
@@ -126,7 +115,7 @@ public class ImageAnalysis extends AppCompatActivity{
 
                 imageFromFile = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8SC4);
                 Utils.bitmapToMat(image, imageFromFile);
-                imageWithLines = detector.detectCube(imageFromFile);
+                imageWithLines = detector.detectCube(imageFromFile, imageToReturn);
                 drawMatToImageView(imageWithLines);
 
             } catch (IOException e) {
@@ -151,10 +140,45 @@ public class ImageAnalysis extends AppCompatActivity{
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        // On selecting a spinner item
+        imageToReturn = parent.getItemAtPosition(position).toString();
+        if(imageFromFile != null) {
+            Toast.makeText(ImageAnalysis.this, "Detecting Cube", Toast.LENGTH_LONG).show();
+            imageWithLines = detector.detectCube(imageFromFile, imageToReturn);
+            drawMatToImageView(imageWithLines);
+            Toast.makeText(ImageAnalysis.this, "Cube Detected", Toast.LENGTH_LONG).show();
+        }
+    }
+    public void onNothingSelected(AdapterView<?> arg0) {
+        // TODO Auto-generated method stub
+    }
+    public void button(){
+        Button loadImageButton = (Button) findViewById(R.id.load_image_button);
+
+        loadImageButton.setOnClickListener(new View.OnClickListener()
+        {
+            public void onClick(View v)
+            {
+                if(imageFromFile != null)
+                    imageFromFile = null;
+                Intent intent = new Intent();
+                // Show only images, no videos or anything else
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                // Always show the chooser (if there are multiple options available)
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
+
+            }
+        });
+    }
+
     public void seekbar( ){
         seekbar = (SeekBar)findViewById(R.id.seekbar);
         seekbar_var = detector.getInitialVar();
         seekbar.setProgress(seekbar_var.getVal()); //Set initial values to the first menu option
+        seekbar.setMax(seekbar_var.getMax());
         seekbar_text = (TextView)findViewById(R.id.seekbar_text);
         seekbar_text.setText("Current " + seekbar_var.getName() + " = " + seekbar.getProgress() + " / " + seekbar.getMax());
 
@@ -183,7 +207,7 @@ public class ImageAnalysis extends AppCompatActivity{
                         seekbar_var.setVal(progress_value);
                         if(imageFromFile != null) {
                             Toast.makeText(ImageAnalysis.this, "Detecting Cube", Toast.LENGTH_LONG).show();
-                            imageWithLines = detector.detectCube(imageFromFile);
+                            imageWithLines = detector.detectCube(imageFromFile, imageToReturn);
                             drawMatToImageView(imageWithLines);
                             Toast.makeText(ImageAnalysis.this, "Cube Detected", Toast.LENGTH_LONG).show();
                         }

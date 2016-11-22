@@ -6,7 +6,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceView;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -17,7 +20,7 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
-public class RealTimeAnalysis extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
+public class RealTimeAnalysis extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2, AdapterView.OnItemSelectedListener {
 
     private static String TAG = "RealTimeAnalysis";
     private static int PICK_IMAGE_REQUEST = 1;
@@ -25,6 +28,8 @@ public class RealTimeAnalysis extends AppCompatActivity implements CameraBridgeV
     private SeekBar seekbar;
     private TextView seekbar_text;
     private SettingsVariable seekbar_var;
+    private Spinner spinner;
+    private String imageToReturn;
 
     private CubeDetector detector;
 
@@ -58,6 +63,8 @@ public class RealTimeAnalysis extends AppCompatActivity implements CameraBridgeV
         javaCameraView.setCvCameraViewListener(this);
 
         detector = new HoughLinesDetector();
+        spinner = (Spinner) findViewById(R.id.real_time_spinner);
+        spinner.setOnItemSelectedListener(this);
         seekbar();
     }
 
@@ -101,7 +108,7 @@ public class RealTimeAnalysis extends AppCompatActivity implements CameraBridgeV
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         cameraFrameRGB = inputFrame.rgba();
-        imageWithLines = detector.detectCube(cameraFrameRGB);
+        imageWithLines = detector.detectCube(cameraFrameRGB, imageToReturn);
         return imageWithLines;
     }
 
@@ -124,6 +131,7 @@ public class RealTimeAnalysis extends AppCompatActivity implements CameraBridgeV
         seekbar = (SeekBar)findViewById(R.id.seekbar);
         seekbar_var = detector.getInitialVar();
         seekbar.setProgress(seekbar_var.getVal()); //Set initial values to the first menu option
+        seekbar.setMax(seekbar_var.getMax());
         seekbar_text = (TextView)findViewById(R.id.seekbar_text);
         seekbar_text.setText("Current " + seekbar_var.getName() + " = " + seekbar.getProgress() + " / " + seekbar.getMax());
 
@@ -156,5 +164,16 @@ public class RealTimeAnalysis extends AppCompatActivity implements CameraBridgeV
                     }
                 }
         );
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        //On spinner item selected
+        imageToReturn = parent.getItemAtPosition(position).toString();
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
     }
 }
