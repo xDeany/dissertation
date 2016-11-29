@@ -44,14 +44,14 @@
                 android:id="@+id/hough_min_line_length" />
             <item android:title ="Max Line Gap"
                 android:id="@+id/hough_max_line_gap" />
-            <item android:title ="Angle Precision"
-                android:id="@+id/hough_angle_precision" />
-            <item android:title = "Min Number Parallel Lines"
-                android:id="@+id/hough_min_num_parallel_lines" />
-            <item android:title = "Min Line Separation"
-                android:id="@+id/hough_min_line_separation" />
-            <item android:title = "Line separation error bound"
-                android:id="@+id/hough_line_separation_error" />
+            <item android:title ="Bin Angle Precision"
+                android:id="@+id/bin_precision" />
+            <item android:title = "Min Distance Between Centres"
+                android:id="@+id/min_distance_between_centres" />
+            <item android:title = "Min Dist Allowed % Error"
+                android:id="@+id/min_dist_error_percent" />
+            <item android:title= "Minimum Perpendicular Distance "
+                android:id="@+id/perpendicular_dist_min" />
         </menu>
 
     </item>

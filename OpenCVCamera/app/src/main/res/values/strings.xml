@@ -10,5 +10,8 @@
         <item>canny_edges</item>
         <item>hough_lines_only</item>
         <item>hough_lines_overlay</item>
+        <item>hough_lines_grouped</item>
+        <item>connections</item>
+        <item>connections_and_lines</item>
     </string-array>
 </resources>
