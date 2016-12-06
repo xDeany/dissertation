@@ -8,11 +8,13 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.LineSegmentDetector;
 import org.opencv.video.Video;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Vector;
 
 /**
  * Created by Andy on 14/11/2016.
@@ -502,11 +504,23 @@ public class HoughLinesDetector extends CubeDetector{
                 Mat blankCanvas = new Mat(downscaled.rows(), downscaled.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
                 dHoughOverlayRaw = drawLines(vLines, blankCanvas);
                 toReturn = upscale(dHoughOverlayRaw.clone(), ratio);
+                blankCanvas.release();
                 break;
             case "hough_lines_overlay":
                 toReturn = upscale(dHoughOverlayRaw.clone(), ratio);
                 break;
-            case "hough_lines_grouped":
+            case "hough_lines_grouped_only":
+                Mat blank = new Mat(downscaled.rows(), downscaled.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
+                List<Vector> lines = new ArrayList<Vector>();
+                for(List<Vector> l : linesAfterJoinging){
+                    lines.addAll(l);
+                }
+                Mat groupedLinesOnly = drawLines(lines, blank);
+                toReturn = upscale(groupedLinesOnly.clone(), ratio);
+                blank.release();
+                groupedLinesOnly.release();
+                break;
+            case "hough_lines_grouped_overlay":
                 toReturn = upscale(dHoughOverlayParallel.clone(), ratio);
                 break;
             /*case "connections":
