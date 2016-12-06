@@ -320,21 +320,23 @@ public class HoughLinesDetector extends CubeDetector{
                 Line v2 = toJoin.second;
 
                 Point midV1 = findMidPoint(v1.start, v1.end);
-                Point midV2 = findMidPoint(v1.start, v1.end);
+                Point midV2 = findMidPoint(v2.start, v2.end);
                 Point mid = findMidPoint(midV1, midV2);
+                //Calc distance from midpoint of both lines to all points
                 double distStartV1ToMid = calcDistBetweenPoints(v1.start, mid);
                 double distStartV2ToMid = calcDistBetweenPoints(v2.start, mid);
                 double distEndV1ToMid = calcDistBetweenPoints(v1.end, mid);
                 double distEndV2ToMid = calcDistBetweenPoints(v2.end, mid);
 
-                //Set farthest vector points
+                //Find most extreme points
                 Point startV1 = distStartV1ToMid > distStartV2ToMid ? v1.start : v2.start;
                 Point endV1 = distEndV1ToMid > distEndV2ToMid ? v1.end : v2.end;
 
                 //Find eqns of normals at these points along the line v1
                 Pair<Double, Double> eqnNormS = findEqnOfNormal(startV1, v1.m, v1.c);
                 Pair<Double, Double> eqnNormE = findEqnOfNormal(endV1, v1.m, v1.c);
-                //Find the coords where these lines intersect the other line
+
+                //Find the coords where these lines intersect v2
                 Point startV2 = startV1 == v1.start ? findIntersect(eqnNormS.first, eqnNormS.second, startV1, v2.m, v2.c, v2.start) : findIntersect(eqnNormS.first, eqnNormS.second, startV1, v1.m, v1.c, v1.start);
                 Point endV2 = endV1 == v1.end ? findIntersect(eqnNormE.first, eqnNormE.second, endV1, v2.m, v2.c, v2.start) : findIntersect(eqnNormE.first, eqnNormE.second, endV1, v1.m, v1.c, v1.start);
 
