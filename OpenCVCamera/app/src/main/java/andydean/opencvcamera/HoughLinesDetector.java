@@ -525,7 +525,18 @@ public class HoughLinesDetector extends CubeDetector{
             case "hough_lines_overlay":
                 toReturn = upscale(dHoughOverlayRaw.clone(), ratio);
                 break;
-            case "hough_lines_grouped":
+            case "hough_lines_grouped_only":
+                Mat blank = new Mat(downscaled.rows(), downscaled.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
+                List<Line> lines = new ArrayList<Line>();
+                for(List<Line> l : linesAfterJoinging){
+                    lines.addAll(l);
+                }
+                Mat groupedLinesOnly = drawLines(lines, blank);
+                toReturn = upscale(groupedLinesOnly.clone(), ratio);
+                blank.release();
+                groupedLinesOnly.release();
+                break;
+            case "hough_lines_grouped_overlay":
                 toReturn = upscale(dHoughOverlayParallel.clone(), ratio);
                 break;
             /*case "connections":
