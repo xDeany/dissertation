@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import andydean.opencvcamera.Line;
 
 /**
  * Created by Andy on 14/11/2016.
@@ -96,6 +95,7 @@ public class HoughLinesDetector extends CubeDetector{
      * @param image
      * @return image
      */
+    /*
     private Mat drawConnectingPairs(List<Pair<Line, Line>> pairsOfLines, Mat image) {
         Iterator<Pair<Line, Line>> pairsItr = pairsOfLines.iterator();
         while (pairsItr.hasNext()){
@@ -112,6 +112,9 @@ public class HoughLinesDetector extends CubeDetector{
         }
         return image;
     }
+    */
+
+    /*
 
     /**
      * Pairs together parallel lines where the distance between the centres is ~= length of one of the lines
@@ -119,6 +122,7 @@ public class HoughLinesDetector extends CubeDetector{
      * @param parallelLinesBin
      * @return pairs
      */
+    /*
     private List<Pair<Line,Line>> findPairsOfParallelLines(List<List<Line>> parallelLinesBin) {
         List<Pair<Line, Line>> pairs = new ArrayList<Pair<Line, Line>>();
         Iterator<List<Line>> binItr = parallelLinesBin.iterator();
@@ -153,7 +157,7 @@ public class HoughLinesDetector extends CubeDetector{
         }
 
         return pairs;
-    }
+    }*/
 
     /**
      * Draw the lines in the same gradient bin
@@ -313,7 +317,7 @@ public class HoughLinesDetector extends CubeDetector{
     }
 
 
-    private Mat downscale(Mat image, int ratio){
+    /*private Mat downscale(Mat image, int ratio){
         if(ratio > 1) {
             int divisor = (int) Math.pow(2,ratio);
             Mat downscaled = new Mat(image.rows() / divisor, image.cols() / divisor, image.type());
@@ -328,9 +332,9 @@ public class HoughLinesDetector extends CubeDetector{
         }
 
         return image.clone();
-    }
+    }*/
 
-    private Mat upscale(Mat image, int ratio){
+    /*private Mat upscale(Mat image, int ratio){
         if(ratio > 1) {
             int multiplier = (int) Math.pow(2, ratio);
             Mat upscaled = new Mat(image.rows() * multiplier, image.cols() * multiplier, image.type());
@@ -345,19 +349,18 @@ public class HoughLinesDetector extends CubeDetector{
         }
 
         return image.clone();
-    }
+    }*/
 
     @Override
     public Mat detectCube(Mat image, String imageToReturn) {
-        int ratio = variables.get(R.id.downsample_ratio).getVal() - 1;
 
-        Mat downscaled = downscale(image, ratio);
-        Mat grayscaleImage = toGrayscale(downscaled);
+        //Mat downscaled = downscale(image, ratio);
+        Mat grayscaleImage = toGrayscale(image);
         Mat mBlur = toBlur(grayscaleImage);
         Mat mCanny = toCanny(mBlur);
         Mat houghLines = toHoughLines(mCanny);
         List<Line> vLines = matToListVector(houghLines);
-        Mat dHoughOverlayRaw = drawLines(vLines, downscaled);
+        Mat dHoughOverlayRaw = drawLines(vLines, image);
 
         //Place them into bins of parallel lines
         List<List<Line>> parallelLinesBin = findParallelLines(vLines);
@@ -366,7 +369,7 @@ public class HoughLinesDetector extends CubeDetector{
         List<List<Line>> linesAfterJoinging = joinCloseLines(parallelLinesBin);
 
         //Only draw the line in bins where bin.size() > hough_min_num_parallel_lines
-        Mat dHoughOverlayParallel = drawOnlyParallelLines(linesAfterJoinging, downscaled);
+        Mat dHoughOverlayParallel = drawOnlyParallelLines(linesAfterJoinging, image);
 
         //Find the most likely pairs of lines
         //List<Pair<Line, Line>> pairsOfLines = findPairsOfParallelLines(parallelLinesBin);
@@ -384,35 +387,35 @@ public class HoughLinesDetector extends CubeDetector{
                 toReturn = image.clone();
                 break;
             case "grayscale_image":
-                toReturn = upscale(grayscaleImage.clone(), ratio);
+                toReturn = grayscaleImage.clone();
                 break;
             case "blurred_image":
-                toReturn = upscale(mBlur.clone(), ratio);
+                toReturn = mBlur.clone();
                 break;
             case "canny_edges":
-                toReturn = upscale(mCanny.clone(), ratio);
+                toReturn = mCanny.clone();
                 break;
             case "hough_lines_only":
-                Mat blankCanvas = new Mat(downscaled.rows(), downscaled.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
+                Mat blankCanvas = new Mat(image.rows(), image.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
                 dHoughOverlayRaw = drawLines(vLines, blankCanvas);
-                toReturn = upscale(dHoughOverlayRaw.clone(), ratio);
+                toReturn = dHoughOverlayRaw.clone();
                 break;
             case "hough_lines_overlay":
-                toReturn = upscale(dHoughOverlayRaw.clone(), ratio);
+                toReturn = dHoughOverlayRaw.clone();
                 break;
             case "hough_lines_grouped_only":
-                Mat blank = new Mat(downscaled.rows(), downscaled.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
+                Mat blank = new Mat(image.rows(), image.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
                 List<Line> lines = new ArrayList<Line>();
                 for(List<Line> l : linesAfterJoinging){
                     lines.addAll(l);
                 }
                 Mat groupedLinesOnly = drawLines(lines, blank);
-                toReturn = upscale(groupedLinesOnly.clone(), ratio);
+                toReturn = groupedLinesOnly.clone();
                 blank.release();
                 groupedLinesOnly.release();
                 break;
             case "hough_lines_grouped_overlay":
-                toReturn = upscale(dHoughOverlayParallel.clone(), ratio);
+                toReturn = dHoughOverlayParallel.clone();
                 break;
             /*case "connections":
                 toReturn = upscale(connectionsOverlay.clone(), ratio);
@@ -429,7 +432,7 @@ public class HoughLinesDetector extends CubeDetector{
         mCanny.release();
         grayscaleImage.release();
         houghLines.release();
-        downscaled.release();
+        //downscaled.release();
         dHoughOverlayRaw.release();
         dHoughOverlayParallel.release();
         //connectionsOverlay.release();
