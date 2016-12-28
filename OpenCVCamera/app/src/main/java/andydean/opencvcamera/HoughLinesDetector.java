@@ -166,17 +166,17 @@ public class HoughLinesDetector extends CubeDetector{
      * @return image
      */
     private Mat drawOnlyParallelLines(List<List<Line>> parallelLinesBin, Mat image) {
-
+        Mat imageClone = image.clone();
         Iterator<List<Line>> binsItr = parallelLinesBin.iterator();
         while(binsItr.hasNext()){
             List<Line> parallelLines = binsItr.next();
             Iterator<Line> linesItr = parallelLines.iterator();
             while(linesItr.hasNext()){
                 Line line = linesItr.next();
-                Imgproc.line(image, line.start, line.end, new Scalar(0, 255, 0, 255), 5);
+                Imgproc.line(imageClone, line.start, line.end, new Scalar(0, 255, 0, 255), 5);
             }
         }
-        return image;
+        return imageClone;
     }
 
     /**
@@ -353,7 +353,6 @@ public class HoughLinesDetector extends CubeDetector{
 
     @Override
     public Mat detectCube(Mat image, String imageToReturn) {
-
         //Mat downscaled = downscale(image, ratio);
         Mat grayscaleImage = toGrayscale(image);
         Mat mBlur = toBlur(grayscaleImage);
