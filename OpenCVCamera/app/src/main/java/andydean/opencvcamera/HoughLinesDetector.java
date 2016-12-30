@@ -35,7 +35,7 @@ public class HoughLinesDetector extends CubeDetector{
         variables.put(R.id.bin_precision, new SettingsVariable("bin_precision", 5, 30));
         variables.put(R.id.min_distance_between_centres, new SettingsVariable("min_distance_between_centres", 4, 100));
         variables.put(R.id.min_dist_error_percent, new SettingsVariable("min_dist_error_percent", 4, 100));
-        variables.put(R.id.perpendicular_dist_min, new SettingsVariable("perpendicular_dist_min", 4, 100));
+        variables.put(R.id.perpendicular_dist_min, new SettingsVariable("perpendicular_dist_min", 50, 100));
     }
 
     private Mat toGrayscale(Mat image){
@@ -273,8 +273,8 @@ public class HoughLinesDetector extends CubeDetector{
                 Point endV1 = distEndV1ToMid > distEndV2ToMid ? v1.end : v2.end;
 
                 //Find eqns of normals at these points along the line v1
-                Pair<Double, Double> eqnNormS = Line.findEqnOfNormal(startV1, v1.m, v1.c);
-                Pair<Double, Double> eqnNormE = Line.findEqnOfNormal(endV1, v1.m, v1.c);
+                Pair<Double, Double> eqnNormS = Line.findEqnOfNormal(startV1, v1.m);
+                Pair<Double, Double> eqnNormE = Line.findEqnOfNormal(endV1, v1.m);
 
                 //Find the coords where these lines intersect v2
                 Point startV2 = startV1 == v1.start ? Line.findIntersect(eqnNormS.first, eqnNormS.second, startV1, v2.m, v2.c, v2.start) : Line.findIntersect(eqnNormS.first, eqnNormS.second, startV1, v1.m, v1.c, v1.start);
@@ -301,21 +301,74 @@ public class HoughLinesDetector extends CubeDetector{
      */
     private Pair<Line, Line> findLinesToJoin(List<Line> lines){
         Iterator<Line> linesItr1 = lines.iterator();
-        Iterator<Line> linesItr2 = lines.iterator();
         while(linesItr1.hasNext()){
+            Iterator<Line> linesItr2 = lines.iterator();
             Line v1 = linesItr1.next();
             while(linesItr2.hasNext()){
                 Line v2 = linesItr2.next();
                 if(v1 != v2){
                     double pDist = Line.findPerpendicularDistance(v1, v2);
                     if(pDist <= variables.get(R.id.perpendicular_dist_min).getVal())
-                        return new Pair<Line, Line>(v1, v2);
+                        return new Pair<>(v1, v2);
                 }
             }
         }
         return null;
     }
 
+    private List<Line> foldList(List<List<Line>> allLines){
+        Iterator<List<Line>> outerItr = allLines.iterator();
+        List<Line> foldedLines = new ArrayList<>();
+        while(outerItr.hasNext()){
+            List<Line> lLine = outerItr.next();
+            Iterator<Line> innerItr = lLine.iterator();
+            while(innerItr.hasNext()){
+                Line line = innerItr.next();
+                foldedLines.add(line);
+            }
+        }
+        return foldedLines;
+    }
+
+    private ArrayList<Pair<Pair<Line, Line>, Point>> calcAllIntersect(List<Line> lines){
+        ArrayList<Pair<Pair<Line, Line>, Point>> intersections = new ArrayList<>();
+        Iterator<Line> linesItr1 = lines.iterator();
+        while(linesItr1.hasNext()){
+            Line v1 = linesItr1.next();
+            Iterator<Line> linesItr2 = lines.iterator();
+            while(linesItr2.hasNext()){
+                Line v2 = linesItr2.next();
+                if(v1 != v2 && !v1.m.equals(v2.m)){
+                    Point p = Line.findIntersect(v1.m, v1.c, v1.start, v2.m, v2.c, v2.start);
+                    intersections.add(new Pair<>(new Pair<>(v1, v2), p));
+                }
+            }
+        }
+        return intersections;
+    }
+
+    /**
+     * Finds the perpendicular distances between all pairs of lines, returning each pair of lines
+     * and the distances between them
+     * @param lines
+     * @return distances
+     */
+    private ArrayList<Pair<Pair<Line, Line>, Double>> calcAllPerpDistances(List<Line> lines){
+        ArrayList<Pair<Pair<Line, Line>, Double>> distances = new ArrayList<>();
+        Iterator<Line> linesItr1 = lines.iterator();
+        while(linesItr1.hasNext()){
+            Line v1 = linesItr1.next();
+            Iterator<Line> linesItr2 = lines.iterator();
+            while(linesItr2.hasNext()){
+                Line v2 = linesItr2.next();
+                if(v1 != v2){
+                    double pDist = Line.findPerpendicularDistance(v1, v2);
+                    distances.add(new Pair<>( new Pair<>(v1, v2), pDist));
+                }
+            }
+        }
+        return distances;
+    }
 
     /*private Mat downscale(Mat image, int ratio){
         if(ratio > 1) {
@@ -365,10 +418,19 @@ public class HoughLinesDetector extends CubeDetector{
         List<List<Line>> parallelLinesBin = findParallelLines(vLines);
 
         //Try to join all similar lines together
-        List<List<Line>> linesAfterJoinging = joinCloseLines(parallelLinesBin);
+        List<List<Line>> linesAfterJoining = joinCloseLines(parallelLinesBin);
+        Iterator<List<Line>> itr = linesAfterJoining.iterator();
+        ArrayList<ArrayList<Pair<Pair<Line, Line>, Double>>> allDistances = new ArrayList<>();
+        List<Line> folded = foldList(linesAfterJoining);
+        ArrayList<Pair<Pair<Line, Line>, Point>> intsct = calcAllIntersect(folded);
+        while(itr.hasNext()){
+            List<Line> lines = itr.next();
+            ArrayList<Pair<Pair<Line, Line>, Double>> dist = calcAllPerpDistances(lines);
+            allDistances.add(dist);
+        }
 
         //Only draw the line in bins where bin.size() > hough_min_num_parallel_lines
-        Mat dHoughOverlayParallel = drawOnlyParallelLines(linesAfterJoinging, image);
+        Mat dHoughOverlayParallel = drawOnlyParallelLines(linesAfterJoining, image);
 
         //Find the most likely pairs of lines
         //List<Pair<Line, Line>> pairsOfLines = findPairsOfParallelLines(parallelLinesBin);
@@ -405,7 +467,7 @@ public class HoughLinesDetector extends CubeDetector{
             case "hough_lines_grouped_only":
                 Mat blank = new Mat(image.rows(), image.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
                 List<Line> lines = new ArrayList<Line>();
-                for(List<Line> l : linesAfterJoinging){
+                for(List<Line> l : linesAfterJoining){
                     lines.addAll(l);
                 }
                 Mat groupedLinesOnly = drawLines(lines, blank);
