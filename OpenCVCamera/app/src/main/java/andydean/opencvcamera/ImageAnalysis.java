@@ -116,6 +116,7 @@ public class ImageAnalysis extends AppCompatActivity implements AdapterView.OnIt
                 imageFromFile = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8SC4);
                 Utils.bitmapToMat(image, imageFromFile);
                 imageWithLines = detector.detectCube(imageFromFile, imageToReturn);
+
                 drawMatToImageView(imageWithLines);
 
             } catch (IOException e) {
@@ -145,10 +146,10 @@ public class ImageAnalysis extends AppCompatActivity implements AdapterView.OnIt
         // On selecting a spinner item
         imageToReturn = parent.getItemAtPosition(position).toString();
         if(imageFromFile != null) {
-            Toast.makeText(ImageAnalysis.this, "Detecting Cube", Toast.LENGTH_LONG).show();
+            //Toast.makeText(ImageAnalysis.this, "Detecting Cube", Toast.LENGTH_LONG).show();
             imageWithLines = detector.detectCube(imageFromFile, imageToReturn);
             drawMatToImageView(imageWithLines);
-            Toast.makeText(ImageAnalysis.this, "Cube Detected", Toast.LENGTH_LONG).show();
+            //Toast.makeText(ImageAnalysis.this, "Cube Detected", Toast.LENGTH_LONG).show();
         }
     }
     public void onNothingSelected(AdapterView<?> arg0) {

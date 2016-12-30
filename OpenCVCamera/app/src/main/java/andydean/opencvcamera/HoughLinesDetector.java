@@ -36,6 +36,7 @@ public class HoughLinesDetector extends CubeDetector{
         variables.put(R.id.min_distance_between_centres, new SettingsVariable("min_distance_between_centres", 4, 100));
         variables.put(R.id.min_dist_error_percent, new SettingsVariable("min_dist_error_percent", 4, 100));
         variables.put(R.id.perpendicular_dist_min, new SettingsVariable("perpendicular_dist_min", 50, 600));
+        variables.put(R.id.perpendicular_dist_increment, new SettingsVariable("perpendicular_dist_increment", 20, 100));
     }
 
     private Mat toGrayscale(Mat image){
@@ -246,7 +247,17 @@ public class HoughLinesDetector extends CubeDetector{
      */
 
     private List<List<Line>> joinCloseLines(List<List<Line>> pLinesBin){
-        for (List<Line> lines : pLinesBin) {
+        List<List<Line>> pLinesBinClone = new ArrayList<>();
+        for(List<Line> lines : pLinesBin){
+            pLinesBinClone.add( new ArrayList<Line>());
+        }
+        for(int i = 0; i < pLinesBin.size(); i++){
+            List<Line> lines = pLinesBin.get(i);
+            for(Line l : lines){
+                pLinesBinClone.get(i).add(l.clone());
+            }
+        }
+        for (List<Line> lines : pLinesBinClone) {
             Pair<Line, Line> toJoin = findLinesToJoin(lines);
             while (toJoin != null) {
                 //Join lines together by finding the start and end points that are farthest from the midpoint between the lines
@@ -286,7 +297,7 @@ public class HoughLinesDetector extends CubeDetector{
                 toJoin = findLinesToJoin(lines);
             }
         }
-        return pLinesBin;
+        return pLinesBinClone;
     }
 
     /**
@@ -295,12 +306,12 @@ public class HoughLinesDetector extends CubeDetector{
      * The lines must also be reasonably close (distances between centres < threshold)
      */
     private Pair<Line, Line> findLinesToJoin(List<Line> lines){
-        for (Line line : lines) {
+        for (Line v1 : lines) {
             for (Line v2 : lines) {
-                if (line != v2) {
-                    double pDist = Line.findPerpendicularDistance(line, v2);
+                if (v1 != v2) {
+                    double pDist = Line.findPerpendicularDistance(v1, v2);
                     if (pDist <= variables.get(R.id.perpendicular_dist_min).getVal())
-                        return new Pair<>(line, v2);
+                        return new Pair<>(v1, v2);
                 }
             }
         }
@@ -389,40 +400,47 @@ public class HoughLinesDetector extends CubeDetector{
         Mat overlayBestParallelLines = drawLines(Line.foldList(bestParallelLines), image);
 
         //Try to join all similar lines together
-        List<List<Line>> linesAfterJoining = joinCloseLines(bestParallelLines);
+        List<List<Line>> linesAfterJoining= joinCloseLines(bestParallelLines);
+
+        boolean cornersFound = false;
+        ArrayList<Point> corners = new ArrayList<>(4);
+
+        do {
+            linesAfterJoining = joinCloseLines(bestParallelLines);
+
+            ArrayList<Pair<Line, Line>> intersectingLines = Line.findAllIntersectingLines(Line.foldList(linesAfterJoining));
+            if (intersectingLines.size() == 2) {
+                corners = findContainingCorners(intersectingLines.get(0).first, intersectingLines.get(0).second);
+                cornersFound = true;
+            } else {
+
+                int before = variables.get(R.id.perpendicular_dist_min).getVal();
+                variables.get(R.id.perpendicular_dist_min).adjustVal(variables.get(R.id.perpendicular_dist_increment).getVal());
+                int after = variables.get(R.id.perpendicular_dist_min).getVal();
+
+            }
+        }while(!cornersFound && variables.get(R.id.perpendicular_dist_min).getVal() <= (variables.get(R.id.perpendicular_dist_min).getMax() - variables.get(R.id.perpendicular_dist_increment).getVal()));
+
 
         //Draw grouped lines
         Mat overlayGrouped = drawLines(Line.foldList(linesAfterJoining), image);
         Mat onlyGrouped = drawLines(Line.foldList(linesAfterJoining), blankCanvas);
 
-        Mat onlyCorners;
-        Mat overlayCorners;
-        Mat onlyCornersAndLines;
-        Mat overlayCornersAndLines;
+        Mat onlyCorners = cornersFound ?
+                drawPoints(corners, blankCanvas) :
+                blankCanvas.clone();
 
-        boolean cornersFound = false;
-        ArrayList<Point> corners = new ArrayList<>(4);
-        if(linesAfterJoining.size() == 2){
-            List<Line> l1 = linesAfterJoining.get(0);
-            List<Line> l2 = linesAfterJoining.get(1);
+        Mat overlayCorners = cornersFound ?
+                drawPoints(corners, image) :
+                blankCanvas.clone();
 
-            if(l1.size() == 1 && l2.size() == 1){
-                corners = findContainingCorners(l1.get(0), l2.get(0));
-                cornersFound = true;
-            }
-        }
-        if(!cornersFound){
-            onlyCorners = blankCanvas.clone();
-            overlayCorners = blankCanvas.clone();
-            onlyCornersAndLines = blankCanvas.clone();
-            overlayCornersAndLines = blankCanvas.clone();
-        }else{
-            //Draw corners
-            onlyCorners = drawPoints(corners, blankCanvas);
-            overlayCorners = drawPoints(corners, image);
-            onlyCornersAndLines = drawLines(Line.foldList(linesAfterJoining), onlyCorners);
-            overlayCornersAndLines = drawLines(Line.foldList(linesAfterJoining), overlayCorners);
-        }
+        Mat onlyCornersAndLines = cornersFound ?
+                drawLines(Line.foldList(linesAfterJoining), onlyCorners) :
+                blankCanvas.clone();
+
+        Mat overlayCornersAndLines = cornersFound ?
+                drawLines(Line.foldList(linesAfterJoining), overlayCorners) :
+                blankCanvas.clone();
 
         Mat toReturn;
 

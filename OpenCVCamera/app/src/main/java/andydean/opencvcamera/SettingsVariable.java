@@ -1,4 +1,5 @@
 package andydean.opencvcamera;
+@SuppressWarnings("WeakerAccess")
 
 /**
  * Created by Andy on 14/11/2016.
@@ -7,11 +8,13 @@ package andydean.opencvcamera;
 public class SettingsVariable {
     private String name;
     private int val;
+    private int initialVal;
     private int max;
 
     public SettingsVariable(String name, int val, int max) {
         this.name = name;
         this.val = val;
+        this.initialVal = val;
         this.max = max;
     }
 
@@ -23,6 +26,8 @@ public class SettingsVariable {
         this.val = val;
     }
 
+    public void adjustVal(int incr) { this.val += incr;}
+
     public int getVal() {
         return val;
     }
@@ -30,4 +35,6 @@ public class SettingsVariable {
     public int getMax() {
         return max;
     }
+
+    public int getInitialVal() { return initialVal;}
 }

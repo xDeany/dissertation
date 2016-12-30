@@ -48,6 +48,10 @@ public class Line {
         setAngle();
     }
 
+    public Line clone(){
+        return new Line(this.start, this.end, this.angle);
+    }
+
     public void setStartAndEnd(Point p1, Point p2){
         if(p1.x == p2.x){
             //If the line is vertical then the start point is the lowest y
@@ -211,5 +215,15 @@ public class Line {
                 && insct.x <= v1.end.x
                 && v2.start.x <= insct.x
                 && insct.x <= v2.end.x;
+    }
+
+    public static ArrayList<Pair<Line, Line>> findAllIntersectingLines(List<Line> allLines){
+        ArrayList<Pair<Line, Line>> allIntersectingLines = new ArrayList<>();
+        for(Line v1 : allLines)
+            for(Line v2 : allLines)
+                if(v1 != v2 && areIntersecting(v1, v2))
+                    allIntersectingLines.add(new Pair<>(v1, v2));
+
+        return allIntersectingLines;
     }
 }

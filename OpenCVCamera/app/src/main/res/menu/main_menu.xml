@@ -50,8 +50,10 @@
                 android:id="@+id/min_distance_between_centres" />
             <item android:title = "Min Dist Allowed % Error"
                 android:id="@+id/min_dist_error_percent" />
-            <item android:title= "Minimum Perpendicular Distance "
+            <item android:title= "Minimum Perpendicular Distance"
                 android:id="@+id/perpendicular_dist_min" />
+            <item android:title= "Perpendicular Distance Increment"
+                android:id="@+id/perpendicular_dist_increment" />
         </menu>
 
     </item>
