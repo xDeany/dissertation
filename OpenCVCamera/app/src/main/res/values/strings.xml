@@ -10,7 +10,12 @@
         <item>canny_edges</item>
         <item>hough_lines_only</item>
         <item>hough_lines_overlay</item>
-        <item>hough_lines_grouped_only</item>
-        <item>hough_lines_grouped_overlay</item>
+        <item>best_parallel_lines_overlay</item>
+        <item>grouped_only</item>
+        <item>grouped_overlay</item>
+        <item>corners_only</item>
+        <item>corners_overlay</item>
+        <item>corners_and_lines_only</item>
+        <item>corners_and_lines_overlay</item>
     </string-array>
 </resources>

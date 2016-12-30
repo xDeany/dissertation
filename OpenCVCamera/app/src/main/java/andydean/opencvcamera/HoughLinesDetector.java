@@ -35,7 +35,7 @@ public class HoughLinesDetector extends CubeDetector{
         variables.put(R.id.bin_precision, new SettingsVariable("bin_precision", 5, 30));
         variables.put(R.id.min_distance_between_centres, new SettingsVariable("min_distance_between_centres", 4, 100));
         variables.put(R.id.min_dist_error_percent, new SettingsVariable("min_dist_error_percent", 4, 100));
-        variables.put(R.id.perpendicular_dist_min, new SettingsVariable("perpendicular_dist_min", 50, 100));
+        variables.put(R.id.perpendicular_dist_min, new SettingsVariable("perpendicular_dist_min", 50, 600));
     }
 
     private Mat toGrayscale(Mat image){
@@ -64,7 +64,7 @@ public class HoughLinesDetector extends CubeDetector{
 
 
     private List<Line> matToListVector (Mat houghLines){
-        List<Line> vLines = new ArrayList<Line>();
+        List<Line> vLines = new ArrayList<>();
         for (int x = 0; x < houghLines.rows(); x++) {
             double[] vec = houghLines.get(x, 0);
             double  x1 = vec[0],
@@ -81,12 +81,18 @@ public class HoughLinesDetector extends CubeDetector{
 
     private Mat drawLines(List<Line> lines, Mat image){
         Mat imageWithLines = image.clone();
-        Iterator<Line> linesItr = lines.iterator();
-        while(linesItr.hasNext()){
-            Line vec = linesItr.next();
+        for (Line vec : lines)
             Imgproc.line(imageWithLines, vec.start, vec.end, new Scalar(0, 255, 0, 255), 5);
-        }
+
         return imageWithLines;
+    }
+
+    private Mat drawPoints(List<Point> points, Mat image){
+        Mat imageWithPoints = image.clone();
+        for(Point p : points)
+            Imgproc.circle(imageWithPoints, p, 3, new Scalar(255, 0, 0, 255), 10);
+
+        return imageWithPoints;
     }
 
     /**
@@ -167,14 +173,9 @@ public class HoughLinesDetector extends CubeDetector{
      */
     private Mat drawOnlyParallelLines(List<List<Line>> parallelLinesBin, Mat image) {
         Mat imageClone = image.clone();
-        Iterator<List<Line>> binsItr = parallelLinesBin.iterator();
-        while(binsItr.hasNext()){
-            List<Line> parallelLines = binsItr.next();
-            Iterator<Line> linesItr = parallelLines.iterator();
-            while(linesItr.hasNext()){
-                Line line = linesItr.next();
+        for (List<Line> parallelLines : parallelLinesBin) {
+            for (Line line : parallelLines)
                 Imgproc.line(imageClone, line.start, line.end, new Scalar(0, 255, 0, 255), 5);
-            }
         }
         return imageClone;
     }
@@ -187,15 +188,13 @@ public class HoughLinesDetector extends CubeDetector{
      * @return
      */
     private List<List<Line>> findParallelLines(List<Line> vLines) {
-        List<List<Line>> bin = new ArrayList<List<Line>>();
-        Iterator<Line> vLinesItr = vLines.iterator();
+        List<List<Line>> bin = new ArrayList<>();
         //Grab all lines found from houghlines and place them into gradient bins
-        while(vLinesItr.hasNext()){
-            Line line = vLinesItr.next();
+        for (Line line : vLines) {
             //Add first item to bin
             if (bin.size() == 0) {
                 //Start first list
-                ArrayList<Line> lines = new ArrayList<Line>();
+                ArrayList<Line> lines = new ArrayList<>();
                 lines.add(line);
                 bin.add(lines);
             } else {
@@ -211,15 +210,15 @@ public class HoughLinesDetector extends CubeDetector{
                     Iterator<Line> lines = parallelLines.iterator();
                     Line v = lines.next();
                     //while (lines.hasNext()) {
-                      //  Line v = lines.next();
-                        //If the bin already has a line of the same angle, check it is far enough away from the other lines
-                        //if (v.angle == line.angle) {
-                          //  matchingAngle = true;
-                            //double distance = findDistanceBetweenCentres(v, line);
+                    //  Line v = lines.next();
+                    //If the bin already has a line of the same angle, check it is far enough away from the other lines
+                    //if (v.angle == line.angle) {
+                    //  matchingAngle = true;
+                    //double distance = findDistanceBetweenCentres(v, line);
 
-                            //if (distance < variables.get(R.id.min_distance_between_centres).getVal())
-                            //    tooClose = true;
-                        //}
+                    //if (distance < variables.get(R.id.min_distance_between_centres).getVal())
+                    //    tooClose = true;
+                    //}
                     //}
                     if (v.angle == line.angle) {
                         parallelLines.add(line);
@@ -228,15 +227,13 @@ public class HoughLinesDetector extends CubeDetector{
                 }
                 //Start a new list if no matching angles were found
                 if (!matchedAngle) {
-                    ArrayList<Line> lines = new ArrayList<Line>();
+                    ArrayList<Line> lines = new ArrayList<>();
                     lines.add(line);
                     bin.add(lines);
                 }
             }
         }
-        //Only need to return two largest bins
-        List<List<Line>> bestBin = getTwoLargestBins(bin);
-        return bestBin;
+        return bin;
     }
 
     /**
@@ -249,11 +246,9 @@ public class HoughLinesDetector extends CubeDetector{
      */
 
     private List<List<Line>> joinCloseLines(List<List<Line>> pLinesBin){
-        Iterator<List<Line>> binItr = pLinesBin.iterator();
-        while(binItr.hasNext()){
-            List<Line> lines = binItr.next();
+        for (List<Line> lines : pLinesBin) {
             Pair<Line, Line> toJoin = findLinesToJoin(lines);
-            while(toJoin != null){
+            while (toJoin != null) {
                 //Join lines together by finding the start and end points that are farthest from the midpoint between the lines
                 //Finding the normal at these points and then connecting the mid points of them
                 Line v1 = toJoin.first;
@@ -284,7 +279,7 @@ public class HoughLinesDetector extends CubeDetector{
                 Point midStart = Line.findMidPoint(startV1, startV2);
                 Point midEnd = Line.findMidPoint(endV1, endV2);
 
-                Line v3 = new Line( midStart, midEnd, v1.angle);
+                Line v3 = new Line(midStart, midEnd, v1.angle);
                 lines.remove(v1);
                 lines.remove(v2);
                 lines.add(v3);
@@ -300,74 +295,41 @@ public class HoughLinesDetector extends CubeDetector{
      * The lines must also be reasonably close (distances between centres < threshold)
      */
     private Pair<Line, Line> findLinesToJoin(List<Line> lines){
-        Iterator<Line> linesItr1 = lines.iterator();
-        while(linesItr1.hasNext()){
-            Iterator<Line> linesItr2 = lines.iterator();
-            Line v1 = linesItr1.next();
-            while(linesItr2.hasNext()){
-                Line v2 = linesItr2.next();
-                if(v1 != v2){
-                    double pDist = Line.findPerpendicularDistance(v1, v2);
-                    if(pDist <= variables.get(R.id.perpendicular_dist_min).getVal())
-                        return new Pair<>(v1, v2);
+        for (Line line : lines) {
+            for (Line v2 : lines) {
+                if (line != v2) {
+                    double pDist = Line.findPerpendicularDistance(line, v2);
+                    if (pDist <= variables.get(R.id.perpendicular_dist_min).getVal())
+                        return new Pair<>(line, v2);
                 }
             }
         }
         return null;
     }
 
-    private List<Line> foldList(List<List<Line>> allLines){
-        Iterator<List<Line>> outerItr = allLines.iterator();
-        List<Line> foldedLines = new ArrayList<>();
-        while(outerItr.hasNext()){
-            List<Line> lLine = outerItr.next();
-            Iterator<Line> innerItr = lLine.iterator();
-            while(innerItr.hasNext()){
-                Line line = innerItr.next();
-                foldedLines.add(line);
-            }
-        }
-        return foldedLines;
-    }
+    private ArrayList<Point> findContainingCorners(Line v1, Line v2){
+        if(!Line.areIntersecting(v1, v2))
+            return null;
 
-    private ArrayList<Pair<Pair<Line, Line>, Point>> calcAllIntersect(List<Line> lines){
-        ArrayList<Pair<Pair<Line, Line>, Point>> intersections = new ArrayList<>();
-        Iterator<Line> linesItr1 = lines.iterator();
-        while(linesItr1.hasNext()){
-            Line v1 = linesItr1.next();
-            Iterator<Line> linesItr2 = lines.iterator();
-            while(linesItr2.hasNext()){
-                Line v2 = linesItr2.next();
-                if(v1 != v2 && !v1.m.equals(v2.m)){
-                    Point p = Line.findIntersect(v1.m, v1.c, v1.start, v2.m, v2.c, v2.start);
-                    intersections.add(new Pair<>(new Pair<>(v1, v2), p));
-                }
-            }
-        }
-        return intersections;
-    }
+        //For both start and end points of each line
+        //Calc eqn of normal
+        //Find intersections between these
+        Pair<Double, Double> v1StartNorm = Line.findEqnOfNormal(v1.start, v1.m);
+        Pair<Double, Double> v1EndNorm = Line.findEqnOfNormal(v1.end, v1.m);
+        Pair<Double, Double> v2StartNorm = Line.findEqnOfNormal(v2.start, v2.m);
+        Pair<Double, Double> v2EndNorm = Line.findEqnOfNormal(v2.start, v2.m);
 
-    /**
-     * Finds the perpendicular distances between all pairs of lines, returning each pair of lines
-     * and the distances between them
-     * @param lines
-     * @return distances
-     */
-    private ArrayList<Pair<Pair<Line, Line>, Double>> calcAllPerpDistances(List<Line> lines){
-        ArrayList<Pair<Pair<Line, Line>, Double>> distances = new ArrayList<>();
-        Iterator<Line> linesItr1 = lines.iterator();
-        while(linesItr1.hasNext()){
-            Line v1 = linesItr1.next();
-            Iterator<Line> linesItr2 = lines.iterator();
-            while(linesItr2.hasNext()){
-                Line v2 = linesItr2.next();
-                if(v1 != v2){
-                    double pDist = Line.findPerpendicularDistance(v1, v2);
-                    distances.add(new Pair<>( new Pair<>(v1, v2), pDist));
-                }
-            }
-        }
-        return distances;
+        Point v1Sv2S = Line.findIntersect(v1StartNorm.first, v1StartNorm.second, v1.start, v2StartNorm.first, v2StartNorm.second, v2.start);
+        Point v1Sv2E = Line.findIntersect(v1StartNorm.first, v1StartNorm.second, v1.start, v2EndNorm.first, v2EndNorm.second, v2.end);
+        Point v1Ev2S = Line.findIntersect(v1EndNorm.first, v1EndNorm.second, v1.end, v2StartNorm.first, v2StartNorm.second, v2.start);
+        Point v1Ev2E = Line.findIntersect(v1EndNorm.first, v1EndNorm.second, v1.end, v2EndNorm.first, v2EndNorm.second, v2.end);
+
+        ArrayList<Point> allPoints = new ArrayList<>(4);
+        allPoints.add(v1Sv2S);
+        allPoints.add(v1Sv2E);
+        allPoints.add(v1Ev2S);
+        allPoints.add(v1Ev2E);
+        return allPoints;
     }
 
     /*private Mat downscale(Mat image, int ratio){
@@ -406,42 +368,63 @@ public class HoughLinesDetector extends CubeDetector{
 
     @Override
     public Mat detectCube(Mat image, String imageToReturn) {
-        //Mat downscaled = downscale(image, ratio);
+        Mat blankCanvas = new Mat(image.rows(), image.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
+
         Mat grayscaleImage = toGrayscale(image);
-        Mat mBlur = toBlur(grayscaleImage);
-        Mat mCanny = toCanny(mBlur);
-        Mat houghLines = toHoughLines(mCanny);
-        List<Line> vLines = matToListVector(houghLines);
-        Mat dHoughOverlayRaw = drawLines(vLines, image);
+        Mat blurredImage = toBlur(grayscaleImage);
+        Mat onlyCanny = toCanny(blurredImage);
+        Mat houghLines = toHoughLines(onlyCanny);
+        //Convert Mat of the houghlines (not drawable) to list of lines
+        List<Line> listHoughLines = matToListVector(houghLines);
+        Mat onlyHoughLines = drawLines(listHoughLines, blankCanvas);
+        Mat overlayHoughLines = drawLines(listHoughLines, image);
 
         //Place them into bins of parallel lines
-        List<List<Line>> parallelLinesBin = findParallelLines(vLines);
+        List<List<Line>> parallelLinesBin = findParallelLines(listHoughLines);
+
+        //Select the two largest bins
+        List<List<Line>> bestParallelLines = getTwoLargestBins(parallelLinesBin);
+
+        //Draw the best parallel lines
+        Mat overlayBestParallelLines = drawLines(Line.foldList(bestParallelLines), image);
 
         //Try to join all similar lines together
-        List<List<Line>> linesAfterJoining = joinCloseLines(parallelLinesBin);
-        Iterator<List<Line>> itr = linesAfterJoining.iterator();
-        ArrayList<ArrayList<Pair<Pair<Line, Line>, Double>>> allDistances = new ArrayList<>();
-        List<Line> folded = foldList(linesAfterJoining);
-        ArrayList<Pair<Pair<Line, Line>, Point>> intsct = calcAllIntersect(folded);
-        while(itr.hasNext()){
-            List<Line> lines = itr.next();
-            ArrayList<Pair<Pair<Line, Line>, Double>> dist = calcAllPerpDistances(lines);
-            allDistances.add(dist);
+        List<List<Line>> linesAfterJoining = joinCloseLines(bestParallelLines);
+
+        //Draw grouped lines
+        Mat overlayGrouped = drawLines(Line.foldList(linesAfterJoining), image);
+        Mat onlyGrouped = drawLines(Line.foldList(linesAfterJoining), blankCanvas);
+
+        Mat onlyCorners;
+        Mat overlayCorners;
+        Mat onlyCornersAndLines;
+        Mat overlayCornersAndLines;
+
+        boolean cornersFound = false;
+        ArrayList<Point> corners = new ArrayList<>(4);
+        if(linesAfterJoining.size() == 2){
+            List<Line> l1 = linesAfterJoining.get(0);
+            List<Line> l2 = linesAfterJoining.get(1);
+
+            if(l1.size() == 1 && l2.size() == 1){
+                corners = findContainingCorners(l1.get(0), l2.get(0));
+                cornersFound = true;
+            }
+        }
+        if(!cornersFound){
+            onlyCorners = blankCanvas.clone();
+            overlayCorners = blankCanvas.clone();
+            onlyCornersAndLines = blankCanvas.clone();
+            overlayCornersAndLines = blankCanvas.clone();
+        }else{
+            //Draw corners
+            onlyCorners = drawPoints(corners, blankCanvas);
+            overlayCorners = drawPoints(corners, image);
+            onlyCornersAndLines = drawLines(Line.foldList(linesAfterJoining), onlyCorners);
+            overlayCornersAndLines = drawLines(Line.foldList(linesAfterJoining), overlayCorners);
         }
 
-        //Only draw the line in bins where bin.size() > hough_min_num_parallel_lines
-        Mat dHoughOverlayParallel = drawOnlyParallelLines(linesAfterJoining, image);
-
-        //Find the most likely pairs of lines
-        //List<Pair<Line, Line>> pairsOfLines = findPairsOfParallelLines(parallelLinesBin);
-
-        //Draw these connections
-        //Mat connectionsOverlay = drawConnectingPairs(pairsOfLines, downscaled);
-        //Mat connectionsAndLinesOverlay = drawConnectingPairs(pairsOfLines, dHoughOverlayParallel);
-
-        //Mat imageWithOverlay = upscale(dHoughOverlayRaw, ratio);
         Mat toReturn;
-
 
         switch(imageToReturn){
             case "original_image":
@@ -451,53 +434,56 @@ public class HoughLinesDetector extends CubeDetector{
                 toReturn = grayscaleImage.clone();
                 break;
             case "blurred_image":
-                toReturn = mBlur.clone();
+                toReturn = blurredImage.clone();
                 break;
             case "canny_edges":
-                toReturn = mCanny.clone();
+                toReturn = onlyCanny.clone();
                 break;
             case "hough_lines_only":
-                Mat blankCanvas = new Mat(image.rows(), image.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
-                dHoughOverlayRaw = drawLines(vLines, blankCanvas);
-                toReturn = dHoughOverlayRaw.clone();
+                toReturn = overlayHoughLines.clone();
                 break;
             case "hough_lines_overlay":
-                toReturn = dHoughOverlayRaw.clone();
+                toReturn = overlayHoughLines.clone();
                 break;
-            case "hough_lines_grouped_only":
-                Mat blank = new Mat(image.rows(), image.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
-                List<Line> lines = new ArrayList<Line>();
-                for(List<Line> l : linesAfterJoining){
-                    lines.addAll(l);
-                }
-                Mat groupedLinesOnly = drawLines(lines, blank);
-                toReturn = groupedLinesOnly.clone();
-                blank.release();
-                groupedLinesOnly.release();
+            case "best_parallel_lines_overlay":
+                toReturn = overlayBestParallelLines.clone();
                 break;
-            case "hough_lines_grouped_overlay":
-                toReturn = dHoughOverlayParallel.clone();
+            case "grouped_only":
+                toReturn = onlyGrouped.clone();
                 break;
-            /*case "connections":
-                toReturn = upscale(connectionsOverlay.clone(), ratio);
+            case "grouped_overlay":
+                toReturn = overlayGrouped.clone();
                 break;
-            case "connections_and_lines":
-                toReturn = upscale(connectionsAndLinesOverlay.clone(), ratio);
-                break;*/
+            case "corners_only":
+                toReturn = onlyCorners.clone();
+                break;
+            case "corners_overlay":
+                toReturn = overlayCorners.clone();
+                break;
+            case "corners_and_lines_only":
+                toReturn = onlyCornersAndLines.clone();
+                break;
+            case "corners_and_lines_overlay":
+                toReturn = overlayCornersAndLines.clone();
+                break;
             default:
-                toReturn = image.clone();
+                toReturn = blankCanvas.clone();
                 break;
         }
 
-        mBlur.release();
-        mCanny.release();
         grayscaleImage.release();
+        blurredImage.release();
+        onlyCanny.release();
         houghLines.release();
-        //downscaled.release();
-        dHoughOverlayRaw.release();
-        dHoughOverlayParallel.release();
-        //connectionsOverlay.release();
-        //connectionsAndLinesOverlay.release();
+        onlyHoughLines.release();
+        overlayHoughLines.release();
+        overlayBestParallelLines.release();
+        onlyGrouped.release();
+        overlayGrouped.release();
+        onlyCorners.release();
+        overlayCorners.release();
+        onlyCornersAndLines.release();
+        overlayCornersAndLines.release();
 
         return toReturn;
     }
@@ -509,8 +495,8 @@ public class HoughLinesDetector extends CubeDetector{
      */
     private List<List<Line>> getTwoLargestBins(List<List<Line>> bin) {
         Iterator<List<Line>> binItr = bin.iterator();
-        List<Line> largestBin = new ArrayList<Line>();
-        List<Line> secondLargestBin = new ArrayList<Line>();
+        List<Line> largestBin = new ArrayList<>();
+        List<Line> secondLargestBin = new ArrayList<>();
         int max = 0;
         int secondMax = 0;
         while(binItr.hasNext()){
@@ -523,7 +509,7 @@ public class HoughLinesDetector extends CubeDetector{
                 secondLargestBin = list;
             }
         }
-        List<List<Line>> newBin = new ArrayList<List<Line>>();
+        List<List<Line>> newBin = new ArrayList<>();
         newBin.add(largestBin);
         newBin.add(secondLargestBin);
         return newBin;

@@ -206,10 +206,10 @@ public class ImageAnalysis extends AppCompatActivity implements AdapterView.OnIt
                         seekbar_text.setText("Current " + seekbar_var.getName() + " = " + progress_value + " / " + seekbar.getMax());
                         seekbar_var.setVal(progress_value);
                         if(imageFromFile != null) {
-                            Toast.makeText(ImageAnalysis.this, "Detecting Cube", Toast.LENGTH_LONG).show();
+                            //Toast.makeText(ImageAnalysis.this, "Detecting Cube", Toast.LENGTH_LONG).show();
                             imageWithLines = detector.detectCube(imageFromFile, imageToReturn);
                             drawMatToImageView(imageWithLines);
-                            Toast.makeText(ImageAnalysis.this, "Cube Detected", Toast.LENGTH_LONG).show();
+                            //Toast.makeText(ImageAnalysis.this, "Cube Detected", Toast.LENGTH_LONG).show();
                         }
                         //Toast.makeText(RealTimeAnalysis.this, "SeekBar stop tracking", Toast.LENGTH_LONG).show();
                     }

@@ -3,6 +3,11 @@ package andydean.opencvcamera;
 import android.util.Pair;
 
 import org.opencv.core.Point;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 @SuppressWarnings("WeakerAccess")
 
 /**
@@ -154,5 +159,57 @@ public class Line {
         return new Point(midX, midY);
     }
 
+    public static List<Line> foldList(List<List<Line>> allLines){
+        List<Line> foldedLines = new ArrayList<>();
+        for(List<Line> lLine : allLines){
+            for (Line line : lLine) {
+                foldedLines.add(line);
+            }
+        }
+        return foldedLines;
+    }
 
+    /**
+     * Finds the perpendicular distances between all pairs of lines, returning each pair of lines
+     * and the distances between them
+     * @param lines
+     * @return distances
+     */
+    public static ArrayList<Pair<Pair<Line, Line>, Double>> calcAllPerpDistances(List<Line> lines){
+        ArrayList<Pair<Pair<Line, Line>, Double>> distances = new ArrayList<>();
+        for (Line v1 : lines) {
+            for (Line v2 : lines) {
+                if (v1 != v2) {
+                    double pDist = Line.findPerpendicularDistance(v1, v2);
+                    distances.add(new Pair<>(new Pair<>(v1, v2), pDist));
+                }
+            }
+        }
+        return distances;
+    }
+
+    public static ArrayList<Pair<Pair<Line, Line>, Point>> calcAllIntersect(List<Line> lines){
+        ArrayList<Pair<Pair<Line, Line>, Point>> intersections = new ArrayList<>();
+        for (Line v1 : lines) {
+            for (Line v2 : lines) {
+                if (v1 != v2 && !v1.m.equals(v2.m)) {
+                    Point p = Line.findIntersect(v1.m, v1.c, v1.start, v2.m, v2.c, v2.start);
+                    intersections.add(new Pair<>(new Pair<>(v1, v2), p));
+                }
+            }
+        }
+        return intersections;
+    }
+
+    public static boolean areIntersecting(Line v1, Line v2){
+        Point insct = findIntersect(v1.m, v1.c, v1.start, v2.m, v2.c, v2.start);
+        if(insct == null)
+            return false;
+
+        //insct.x must lie between the start and end 'x' of both of the lines
+        return v1.start.x <= insct.x
+                && insct.x <= v1.end.x
+                && v2.start.x <= insct.x
+                && insct.x <= v2.end.x;
+    }
 }
