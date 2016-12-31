@@ -135,16 +135,18 @@ public class Line {
      * @return
      */
     public static Point findIntersect(Double m1, Double c1, Point a1, Double m2, Double c2, Point a2) {
-        if (m1.equals(m2)){
+        if (m1.equals(m2)) {
             //lines are parallel
             return null;
         }
-        if(m1.equals(Double.POSITIVE_INFINITY)){
+        if (m1.equals(Double.POSITIVE_INFINITY)) {
             //line 1 is vertical
-            return new Point(a1.x, c2);
-        }else if(m1 == 0){
-            //line 1 is horizontal
-            return new Point(a2.x, c1);
+            double y = (m2 * a1.x) + c2;
+            return new Point(a1.x, y);
+        } else if (m2.equals(Double.POSITIVE_INFINITY)) {
+            //line 2 is vertical
+            double y = (m1 * a2.x) + c1;
+            return new Point(a2.x, y);
         }
         Double x = (c2-c1)/(m1-m2);
         Double y = (m1*x) + c1;

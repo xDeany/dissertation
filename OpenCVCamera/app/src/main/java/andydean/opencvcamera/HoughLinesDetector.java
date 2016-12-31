@@ -91,7 +91,7 @@ public class HoughLinesDetector extends CubeDetector{
     private Mat drawPoints(List<Point> points, Mat image){
         Mat imageWithPoints = image.clone();
         for(Point p : points)
-            Imgproc.circle(imageWithPoints, p, 3, new Scalar(255, 0, 0, 255), 10);
+            Imgproc.circle(imageWithPoints, p, 8, new Scalar(255, 0, 0, 255), 40);
 
         return imageWithPoints;
     }
@@ -328,7 +328,7 @@ public class HoughLinesDetector extends CubeDetector{
         Pair<Double, Double> v1StartNorm = Line.findEqnOfNormal(v1.start, v1.m);
         Pair<Double, Double> v1EndNorm = Line.findEqnOfNormal(v1.end, v1.m);
         Pair<Double, Double> v2StartNorm = Line.findEqnOfNormal(v2.start, v2.m);
-        Pair<Double, Double> v2EndNorm = Line.findEqnOfNormal(v2.start, v2.m);
+        Pair<Double, Double> v2EndNorm = Line.findEqnOfNormal(v2.end, v2.m);
 
         Point v1Sv2S = Line.findIntersect(v1StartNorm.first, v1StartNorm.second, v1.start, v2StartNorm.first, v2StartNorm.second, v2.start);
         Point v1Sv2E = Line.findIntersect(v1StartNorm.first, v1StartNorm.second, v1.start, v2EndNorm.first, v2EndNorm.second, v2.end);
@@ -413,7 +413,7 @@ public class HoughLinesDetector extends CubeDetector{
                 corners = findContainingCorners(intersectingLines.get(0).first, intersectingLines.get(0).second);
                 cornersFound = true;
             } else {
-
+//TODO fix detecting corners (location)
                 int before = variables.get(R.id.perpendicular_dist_min).getVal();
                 variables.get(R.id.perpendicular_dist_min).adjustVal(variables.get(R.id.perpendicular_dist_increment).getVal());
                 int after = variables.get(R.id.perpendicular_dist_min).getVal();
@@ -428,19 +428,19 @@ public class HoughLinesDetector extends CubeDetector{
 
         Mat onlyCorners = cornersFound ?
                 drawPoints(corners, blankCanvas) :
-                blankCanvas.clone();
+                image.clone();
 
         Mat overlayCorners = cornersFound ?
                 drawPoints(corners, image) :
-                blankCanvas.clone();
+                image.clone();
 
         Mat onlyCornersAndLines = cornersFound ?
                 drawLines(Line.foldList(linesAfterJoining), onlyCorners) :
-                blankCanvas.clone();
+                image.clone();
 
         Mat overlayCornersAndLines = cornersFound ?
                 drawLines(Line.foldList(linesAfterJoining), overlayCorners) :
-                blankCanvas.clone();
+                image.clone();
 
         Mat toReturn;
 
