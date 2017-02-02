@@ -22,6 +22,8 @@ public class HoughLinesDetector extends CubeDetector{
 
     public HoughLinesDetector(){
 
+        //Variables List stores the menu settings and their values
+        //Strings.xml in the resources folder also needs to be edited when adding/removing settings
         variables.put(R.id.downsample_ratio, new SettingsVariable("downsample_ratio", 1, 20));
         variables.put(R.id.bilateral_diameter, new SettingsVariable("bilateral_diameter", 5, 50));
         variables.put(R.id.bilateral_sigma, new SettingsVariable("bilateral_sigma_value", 20, 100));
@@ -39,33 +41,58 @@ public class HoughLinesDetector extends CubeDetector{
         variables.put(R.id.perpendicular_dist_increment, new SettingsVariable("perpendicular_dist_increment", 20, 100));
     }
 
+    /**
+     * Takes an image and returns a greyscale copy image, does not release the initial image
+     * @param image **The image to be converted**
+     * @return grayscaleImage **A greyscale COPY of the initial image**
+     */
     private Mat toGrayscale(Mat image){
         Mat grayscaleImage = new Mat(image.height(), image.width(), image.type());
         Imgproc.cvtColor(image, grayscaleImage, Imgproc.COLOR_RGB2GRAY);
         return grayscaleImage;
     }
 
+    /**
+     *  Takes an image and returns a blurred copy image, does not release the initial image
+     * @param image **The image to be converted**
+     * @return blurredImage **A blurred COPY of the initial image**
+     */
     private Mat toBlur(Mat image){
         Mat blurredImage = new Mat(image.height(), image.width(), image.type());
         Imgproc.bilateralFilter(image, blurredImage, variables.get(R.id.bilateral_diameter).getVal(), variables.get(R.id.bilateral_sigma).getVal(), variables.get(R.id.bilateral_sigma).getVal());
         return blurredImage;
     }
 
+    /**
+     *  Takes an image and returns the canny edges of the input, does not release the initial image
+     * @param image **The image to be converted**
+     * @return cannyImage **A canny edge COPY of the initial image**
+     */
     private Mat toCanny(Mat image){
         Mat cannyImage = new Mat(image.height(), image.width(), image.type());
         Imgproc.Canny(image, cannyImage, variables.get(R.id.canny_threshold_1).getVal(), variables.get(R.id.canny_threshold_2).getVal());
         return cannyImage;
     }
 
-    private Mat toHoughLines(Mat image){
+    /**
+     *  Takes canny edges and returns the result of a houghLinesP transform, does not release the initial image
+     * @param cannyEdge **The image to be converted**
+     * @return houghLines **The resulting hough lines**
+     */
+    private Mat toHoughLines(Mat cannyEdge){
         Mat houghLines = new Mat();
-        Imgproc.HoughLinesP(image, houghLines, variables.get(R.id.hough_rho).getVal(), variables.get(R.id.hough_theta).getVal() * Math.PI/180, variables.get(R.id.hough_threshold).getVal(), variables.get(R.id.hough_min_line_length).getVal(), variables.get(R.id.hough_max_line_gap).getVal());
+        Imgproc.HoughLinesP(cannyEdge, houghLines, variables.get(R.id.hough_rho).getVal(), variables.get(R.id.hough_theta).getVal() * Math.PI/180, variables.get(R.id.hough_threshold).getVal(), variables.get(R.id.hough_min_line_length).getVal(), variables.get(R.id.hough_max_line_gap).getVal());
         return houghLines;
     }
-
-
+                                                 
+    /**
+     * Takes a Mat image of lines, and converts it into a linked list of Line (Custom data type) for
+     * later analysis, sorting and filtering
+     * @param houghLines **Mat image, has to only contain line vectors**
+     * @return listLines **The lines all added into a single linked list**
+     */
     private List<Line> matToListVector (Mat houghLines){
-        List<Line> vLines = new ArrayList<>();
+        List<Line> listLines = new ArrayList<>();
         for (int x = 0; x < houghLines.rows(); x++) {
             double[] vec = houghLines.get(x, 0);
             double  x1 = vec[0],
@@ -73,13 +100,18 @@ public class HoughLinesDetector extends CubeDetector{
                     x2 = vec[2],
                     y2 = vec[3];
             Line line = new Line(new Point(x1, y1), new Point(x2, y2), variables.get(R.id.bin_precision).getVal());
-            vLines.add(line);
+            listLines.add(line);
         }
-        return vLines;
+        return listLines;
 
     }
 
-
+    /**
+     * Creates a clone of an input image and draws the lines on to the clone
+     * @param lines **List of Lines that are to be drawn**
+     * @param image **Image that they are to be drawn on**
+     * @return imageWithLines
+     */
     private Mat drawLines(List<Line> lines, Mat image){
         Mat imageWithLines = image.clone();
         for (Line vec : lines)
@@ -88,6 +120,12 @@ public class HoughLinesDetector extends CubeDetector{
         return imageWithLines;
     }
 
+    /**
+     * Creates a clone of an input image and draws the points on to the clone
+     * @param points **List of Points to draw**
+     * @param image **Image to be drawn on to**
+     * @return imageWithPoints
+     */
     private Mat drawPoints(List<Point> points, Mat image){
         Mat imageWithPoints = image.clone();
         for(Point p : points)
@@ -96,7 +134,7 @@ public class HoughLinesDetector extends CubeDetector{
         return imageWithPoints;
     }
 
-    /**
+    /*
      * Draws the lines connecting valid pairs of parallel lines as found by findPairsOfParallelLines
      * @param pairsOfLines
      * @param image
@@ -121,9 +159,8 @@ public class HoughLinesDetector extends CubeDetector{
     }
     */
 
-    /*
 
-    /**
+    /*
      * Pairs together parallel lines where the distance between the centres is ~= length of one of the lines
      * Allows for variation of +- hough_line_separation_error %
      * @param parallelLinesBin
@@ -166,13 +203,14 @@ public class HoughLinesDetector extends CubeDetector{
         return pairs;
     }*/
 
-    /**
-     * Draw the lines in the same gradient bin
-     * @param parallelLinesBin
-     * @param parallelLinesBin, image
-     * @return image
+    /*
+     * Draw all lines on to image, where they are already grouped into lists of lines with similar gradients
+     * @param parallelLinesBin **A List of lists, where each List contains lines of the same gradien**
+     * @param image **Image to be drawn on to**
+     * @return imageClone **Clone of the initial image with **
      */
-    private Mat drawOnlyParallelLines(List<List<Line>> parallelLinesBin, Mat image) {
+    /*
+    private Mat drawParallelLines(List<List<Line>> parallelLinesBin, Mat image) {
         Mat imageClone = image.clone();
         for (List<Line> parallelLines : parallelLinesBin) {
             for (Line line : parallelLines)
@@ -180,13 +218,13 @@ public class HoughLinesDetector extends CubeDetector{
         }
         return imageClone;
     }
-
+*/
     /**
      * Group the lines with similar gradients (dependant on hough_angle_precision setting)
      * Also prevents lines from being added to the groups if the centre of the line is too close
      * to any of the other lines (dependant on hough_min_line_separation)
-     * @param vLines
-     * @return
+     * @param vLines **Lines that are to be grouped**
+     * @return bin **All of the lines in their groups**
      */
     private List<List<Line>> findParallelLines(List<Line> vLines) {
         List<List<Line>> bin = new ArrayList<>();
@@ -242,8 +280,8 @@ public class HoughLinesDetector extends CubeDetector{
      * If this distance is too small i.e. the lines too close together two be classed as distinct lines
      * It will connect them into a single line
      * The lines must also be reasonably close (distances between centres < threshold)
-     * @param pLinesBin
-     * @return
+     * @param pLinesBin **Lines grouped by their gradients**
+     * @return pLinesBinClone **Lines grouped by their gradients, after lines are grouped if they are close to each other**
      */
 
     private List<List<Line>> joinCloseLines(List<List<Line>> pLinesBin){
@@ -304,20 +342,33 @@ public class HoughLinesDetector extends CubeDetector{
      * Finds the perpendicular distance between each pair of parallel lines
      * If this distance is too small i.e. the lines too close together two be classed as distinct lines
      * The lines must also be reasonably close (distances between centres < threshold)
+     * @param lines **List of lines that are to be grouped, assumed to all be roughly parallel**
+     * @return toJoin **Pair of lines that are deemed close enough to be grouped**
      */
     private Pair<Line, Line> findLinesToJoin(List<Line> lines){
         for (Line v1 : lines) {
             for (Line v2 : lines) {
                 if (v1 != v2) {
                     double pDist = Line.findPerpendicularDistance(v1, v2);
-                    if (pDist <= variables.get(R.id.perpendicular_dist_min).getVal())
-                        return new Pair<>(v1, v2);
+                    if (pDist <= variables.get(R.id.perpendicular_dist_min).getVal()) {
+                        Pair<Line, Line> toJoin = new Pair<>(v1, v2);
+                        return toJoin;
+                    }
                 }
             }
         }
         return null;
     }
 
+    /**
+     * Given that the two lines provided are intersecting between their start and end points,
+     * The four corners surrounding these lines are found
+     * E.g. If the lines given where a cross-hair over the centre of a square, the containing corners
+     * would correspond to the corners of the square.
+     * @param v1 **First line**
+     * @param v2 **Second line**
+     * @return allPoints **An arrayList containing the coordinates of the corners around the lines**
+     */
     private ArrayList<Point> findContainingCorners(Line v1, Line v2){
         if(!Line.areIntersecting(v1, v2))
             return null;
@@ -330,11 +381,13 @@ public class HoughLinesDetector extends CubeDetector{
         Pair<Double, Double> v2StartNorm = Line.findEqnOfNormal(v2.start, v2.m);
         Pair<Double, Double> v2EndNorm = Line.findEqnOfNormal(v2.end, v2.m);
 
+        //Find where these normal lines intersect i.e. the containing corners
         Point v1Sv2S = Line.findIntersect(v1StartNorm.first, v1StartNorm.second, v1.start, v2StartNorm.first, v2StartNorm.second, v2.start);
         Point v1Sv2E = Line.findIntersect(v1StartNorm.first, v1StartNorm.second, v1.start, v2EndNorm.first, v2EndNorm.second, v2.end);
         Point v1Ev2S = Line.findIntersect(v1EndNorm.first, v1EndNorm.second, v1.end, v2StartNorm.first, v2StartNorm.second, v2.start);
         Point v1Ev2E = Line.findIntersect(v1EndNorm.first, v1EndNorm.second, v1.end, v2EndNorm.first, v2EndNorm.second, v2.end);
 
+        //Group all the corners into a containing array
         ArrayList<Point> allPoints = new ArrayList<>(4);
         allPoints.add(v1Sv2S);
         allPoints.add(v1Sv2E);
@@ -377,6 +430,12 @@ public class HoughLinesDetector extends CubeDetector{
         return image.clone();
     }*/
 
+    /**
+     * Runs the full Computer Vision process on the given image, returning the specified stage of analysis
+     * @param image **The raw image to be analysed**
+     * @param imageToReturn **The stage of analysis to be returned (e.g. HoughLines, or detectedCube**
+     * @return toReturn **The image corresponding to imageToReturn, returns the inital image if there is an error**
+     */
     @Override
     public Mat detectCube(Mat image, String imageToReturn) {
         Mat blankCanvas = new Mat(image.rows(), image.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
@@ -508,8 +567,8 @@ public class HoughLinesDetector extends CubeDetector{
 
     /**
      * Find the two bins that have the most vectors
-     * @param bin
-     * @return newBin
+     * @param bin **Lines that have been grouped into Lists of parallel lines**
+     * @return newBin **The two largest groups of parallel lines**
      */
     private List<List<Line>> getTwoLargestBins(List<List<Line>> bin) {
         Iterator<List<Line>> binItr = bin.iterator();
@@ -533,6 +592,10 @@ public class HoughLinesDetector extends CubeDetector{
         return newBin;
     }
 
+    /**
+     * Abstract function for returning the first variable in the variables array (For the Analysis class)
+     * @return The first variable in the list
+     */
     @Override
     public SettingsVariable getInitialVar(){
         return variables.get(R.id.bilateral_diameter);
