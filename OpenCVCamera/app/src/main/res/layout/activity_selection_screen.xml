@@ -27,4 +27,13 @@
         android:layout_below="@+id/hough_lines_real_time_button"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="44dp" />
+
+    <Button
+        android:text="Test Location Detector"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/test_location_detector"
+        android:layout_below="@+id/hough_lines_image_button"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="45dp" />
 </RelativeLayout>

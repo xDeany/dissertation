@@ -1,7 +1,9 @@
 package andydean.opencvcamera;
 
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -16,4 +18,6 @@ public interface CubeDetectorInterface {
     public SettingsVariable getInitialVar();
 
     public Mat detectCube(Mat image, String imageToReturn);
+
+    public ArrayList<Point> testDetectCube(Mat image);
 }

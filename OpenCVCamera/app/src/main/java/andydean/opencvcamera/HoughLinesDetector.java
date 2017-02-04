@@ -37,7 +37,7 @@ public class HoughLinesDetector extends CubeDetector{
         variables.put(R.id.bin_precision, new SettingsVariable("bin_precision", 5, 30));
         variables.put(R.id.min_distance_between_centres, new SettingsVariable("min_distance_between_centres", 4, 100));
         variables.put(R.id.min_dist_error_percent, new SettingsVariable("min_dist_error_percent", 4, 100));
-        variables.put(R.id.perpendicular_dist_min, new SettingsVariable("perpendicular_dist_min", 50, 600));
+        variables.put(R.id.perpendicular_dist_min, new SettingsVariable("perpendicular_dist_min", 50, 800));
         variables.put(R.id.perpendicular_dist_increment, new SettingsVariable("perpendicular_dist_increment", 20, 100));
     }
 
@@ -431,6 +431,46 @@ public class HoughLinesDetector extends CubeDetector{
     }*/
 
     /**
+     * Find the two bins that have the most vectors
+     * @param bin **Lines that have been grouped into Lists of parallel lines**
+     * @return newBin **The two largest groups of parallel lines**
+     */
+    private List<List<Line>> getTwoLargestBins(List<List<Line>> bin) {
+        Iterator<List<Line>> binItr = bin.iterator();
+        List<Line> largestBin = new ArrayList<>();
+        List<Line> secondLargestBin = new ArrayList<>();
+        int max = 0;
+        int secondMax = 0;
+        while(binItr.hasNext()){
+            List<Line> list = binItr.next();
+            if(list.size() > max){
+                if(max > secondMax){
+                    secondMax = max;
+                    secondLargestBin = largestBin;
+                }
+                max = list.size();
+                largestBin = list;
+            }else if(list.size() > secondMax){
+                secondMax = list.size();
+                secondLargestBin = list;
+            }
+        }
+        List<List<Line>> newBin = new ArrayList<>();
+        newBin.add(largestBin);
+        newBin.add(secondLargestBin);
+        return newBin;
+    }
+
+    /**
+     * Abstract function for returning the first variable in the variables array (For the Analysis class)
+     * @return The first variable in the list
+     */
+    @Override
+    public SettingsVariable getInitialVar(){
+        return variables.get(R.id.bilateral_diameter);
+    }
+
+    /**
      * Runs the full Computer Vision process on the given image, returning the specified stage of analysis
      * @param image **The raw image to be analysed**
      * @param imageToReturn **The stage of analysis to be returned (e.g. HoughLines, or detectedCube**
@@ -464,6 +504,7 @@ public class HoughLinesDetector extends CubeDetector{
         boolean cornersFound = false;
         ArrayList<Point> corners = new ArrayList<>(4);
 
+        //Keep grouping lines until left with a single pair of intersecting lines
         do {
             linesAfterJoining = joinCloseLines(bestParallelLines);
 
@@ -472,10 +513,9 @@ public class HoughLinesDetector extends CubeDetector{
                 corners = findContainingCorners(intersectingLines.get(0).first, intersectingLines.get(0).second);
                 cornersFound = true;
             } else {
-//TODO fix detecting corners (location)
-                int before = variables.get(R.id.perpendicular_dist_min).getVal();
+                //int before = variables.get(R.id.perpendicular_dist_min).getVal();
                 variables.get(R.id.perpendicular_dist_min).adjustVal(variables.get(R.id.perpendicular_dist_increment).getVal());
-                int after = variables.get(R.id.perpendicular_dist_min).getVal();
+                //int after = variables.get(R.id.perpendicular_dist_min).getVal();
 
             }
         }while(!cornersFound && variables.get(R.id.perpendicular_dist_min).getVal() <= (variables.get(R.id.perpendicular_dist_min).getMax() - variables.get(R.id.perpendicular_dist_increment).getVal()));
@@ -566,38 +606,55 @@ public class HoughLinesDetector extends CubeDetector{
     }
 
     /**
-     * Find the two bins that have the most vectors
-     * @param bin **Lines that have been grouped into Lists of parallel lines**
-     * @return newBin **The two largest groups of parallel lines**
+     * Attempts to detect the cube, returning the location of the corners (if they are found)
+     * @param image ** The image to be analysed **
+     * @return corners **The corners of the cube the detector finds **
      */
-    private List<List<Line>> getTwoLargestBins(List<List<Line>> bin) {
-        Iterator<List<Line>> binItr = bin.iterator();
-        List<Line> largestBin = new ArrayList<>();
-        List<Line> secondLargestBin = new ArrayList<>();
-        int max = 0;
-        int secondMax = 0;
-        while(binItr.hasNext()){
-            List<Line> list = binItr.next();
-            if(list.size() > max){
-                max = list.size();
-                largestBin = list;
-            }else if(list.size() > secondMax){
-                secondMax = list.size();
-                secondLargestBin = list;
-            }
-        }
-        List<List<Line>> newBin = new ArrayList<>();
-        newBin.add(largestBin);
-        newBin.add(secondLargestBin);
-        return newBin;
-    }
+    public ArrayList<Point> testDetectCube(Mat image){
 
-    /**
-     * Abstract function for returning the first variable in the variables array (For the Analysis class)
-     * @return The first variable in the list
-     */
-    @Override
-    public SettingsVariable getInitialVar(){
-        return variables.get(R.id.bilateral_diameter);
+        Mat grayscaleImage = toGrayscale(image);
+        Mat blurredImage = toBlur(grayscaleImage);
+        Mat onlyCanny = toCanny(blurredImage);
+        Mat houghLines = toHoughLines(onlyCanny);
+
+        //Convert Mat of the houghlines (not drawable) to list of lines
+        List<Line> listHoughLines = matToListVector(houghLines);
+
+        //Place them into bins of parallel lines
+        List<List<Line>> parallelLinesBin = findParallelLines(listHoughLines);
+
+        //Select the two largest bins
+        List<List<Line>> bestParallelLines = getTwoLargestBins(parallelLinesBin);
+
+        //Try to join all similar lines together
+        List<List<Line>> linesAfterJoining = joinCloseLines(bestParallelLines);
+
+        boolean cornersFound = false;
+        ArrayList<Point> corners = new ArrayList<>(4);
+        int before = 0;
+        int after = 0;
+        //Keep grouping lines until left with a single pair of intersecting lines
+        do {
+            linesAfterJoining = joinCloseLines(bestParallelLines);
+
+            ArrayList<Pair<Line, Line>> intersectingLines = Line.findAllIntersectingLines(Line.foldList(linesAfterJoining));
+            if (intersectingLines.size() == 2) {
+                corners = findContainingCorners(intersectingLines.get(0).first, intersectingLines.get(0).second);
+                cornersFound = true;
+            } else {
+                before = variables.get(R.id.perpendicular_dist_min).getVal();
+                variables.get(R.id.perpendicular_dist_min).adjustVal(variables.get(R.id.perpendicular_dist_increment).getVal());
+                after = variables.get(R.id.perpendicular_dist_min).getVal();
+
+            }
+        }while(!cornersFound && variables.get(R.id.perpendicular_dist_min).getVal() <= (variables.get(R.id.perpendicular_dist_min).getMax() - variables.get(R.id.perpendicular_dist_increment).getVal()));
+
+        grayscaleImage.release();
+        blurredImage.release();
+        onlyCanny.release();
+        houghLines.release();
+        before = after;
+
+        return corners;
     }
 }
