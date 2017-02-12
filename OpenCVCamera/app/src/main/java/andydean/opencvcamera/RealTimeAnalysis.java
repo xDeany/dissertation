@@ -62,7 +62,7 @@ public class RealTimeAnalysis extends AppCompatActivity implements CameraBridgeV
         javaCameraView.setCameraIndex(0);
         javaCameraView.setCvCameraViewListener(this);
 
-        detector = new HoughLinesDetector();
+        detector = new HoughLinesDetector(this);
         spinner = (Spinner) findViewById(R.id.real_time_spinner);
         spinner.setOnItemSelectedListener(this);
         seekbar();

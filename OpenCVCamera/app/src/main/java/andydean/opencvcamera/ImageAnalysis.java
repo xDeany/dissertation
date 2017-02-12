@@ -62,7 +62,7 @@ public class ImageAnalysis extends AppCompatActivity implements AdapterView.OnIt
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image);
 
-        detector = new HoughLinesDetector();
+        detector = new HoughLinesDetector(this);
         seekbar();
         spinner = (Spinner) findViewById(R.id.image_spinner);
         spinner.setOnItemSelectedListener(this);

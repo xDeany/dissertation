@@ -1,6 +1,9 @@
 package andydean.opencvcamera;
 
+import android.app.Activity;
+import android.content.Context;
 import android.util.Pair;
+import android.widget.Toast;
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -20,7 +23,11 @@ import java.util.List;
 
 public class HoughLinesDetector extends CubeDetector{
 
-    public HoughLinesDetector(){
+    private Context context;
+
+    public HoughLinesDetector(Context context){
+
+        this.context  = context;
 
         //Variables List stores the menu settings and their values
         //Strings.xml in the resources folder also needs to be edited when adding/removing settings
@@ -511,6 +518,8 @@ public class HoughLinesDetector extends CubeDetector{
             ArrayList<Pair<Line, Line>> intersectingLines = Line.findAllIntersectingLines(Line.foldList(linesAfterJoining));
             if (intersectingLines.size() == 2) {
                 corners = findContainingCorners(intersectingLines.get(0).first, intersectingLines.get(0).second);
+                if(corners != null)
+                    Toast.makeText(context, corners.toString(), Toast.LENGTH_LONG).show();
                 cornersFound = true;
             } else {
                 //int before = variables.get(R.id.perpendicular_dist_min).getVal();
@@ -640,6 +649,7 @@ public class HoughLinesDetector extends CubeDetector{
             ArrayList<Pair<Line, Line>> intersectingLines = Line.findAllIntersectingLines(Line.foldList(linesAfterJoining));
             if (intersectingLines.size() == 2) {
                 corners = findContainingCorners(intersectingLines.get(0).first, intersectingLines.get(0).second);
+                //Toast.makeText(context, corners.toString(), Toast.LENGTH_LONG).show();
                 cornersFound = true;
             } else {
                 before = variables.get(R.id.perpendicular_dist_min).getVal();
