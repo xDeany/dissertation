@@ -57,14 +57,14 @@ public class SelectionScreen extends AppCompatActivity {
                 String path = Environment.getExternalStorageDirectory().getAbsoluteFile() + "/DissertationDataSet";
                 File dir = new File(path);
                 dir.mkdirs();
-                for(int i = 1; i<171; i++) {
+                for(int i = 1; i<115; i++) {
                     try {
                         int id = SelectionScreen.this.getResources().getIdentifier("cube_" + i, "drawable", SelectionScreen.this.getPackageName());
                         Mat img = Utils.loadResource(SelectionScreen.this, id, Imgcodecs.CV_LOAD_IMAGE_COLOR);
                         CubeDetector detector = new HoughLinesDetector(SelectionScreen.this);
                         ArrayList<Point> corners = detector.testDetectCube(img);
                         String strCorners = corners.toString();
-                        File file = new File(path + "/test_corners_2.txt");
+                        File file = new File(path + "/test_corners_1b.txt");
                         FileOutputStream fOut = new FileOutputStream(file, true);
                         byte[] bs = strCorners.getBytes();
                         fOut.write(strCorners.getBytes());

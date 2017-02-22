@@ -36,5 +36,7 @@ public class SettingsVariable {
         return max;
     }
 
+    public void setMax(int max) {this.max = max;}
+
     public int getInitialVal() { return initialVal;}
 }

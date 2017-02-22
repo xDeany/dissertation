@@ -485,6 +485,7 @@ public class HoughLinesDetector extends CubeDetector{
      */
     @Override
     public Mat detectCube(Mat image, String imageToReturn) {
+        variables.get(R.id.perpendicular_dist_min).setMax(image.cols()>image.rows()?image.cols():image.rows());
         Mat blankCanvas = new Mat(image.rows(), image.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
 
         Mat grayscaleImage = toGrayscale(image);
@@ -620,6 +621,7 @@ public class HoughLinesDetector extends CubeDetector{
      * @return corners **The corners of the cube the detector finds **
      */
     public ArrayList<Point> testDetectCube(Mat image){
+        variables.get(R.id.perpendicular_dist_min).setMax(image.cols()>image.rows()?image.cols():image.rows());
 
         Mat grayscaleImage = toGrayscale(image);
         Mat blurredImage = toBlur(grayscaleImage);
@@ -658,6 +660,8 @@ public class HoughLinesDetector extends CubeDetector{
 
             }
         }while(!cornersFound && variables.get(R.id.perpendicular_dist_min).getVal() <= (variables.get(R.id.perpendicular_dist_min).getMax() - variables.get(R.id.perpendicular_dist_increment).getVal()));
+
+
 
         grayscaleImage.release();
         blurredImage.release();
