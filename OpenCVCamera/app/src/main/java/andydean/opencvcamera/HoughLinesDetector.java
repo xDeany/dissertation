@@ -456,13 +456,9 @@ public class HoughLinesDetector extends CubeDetector{
         Line horzL = lines.first.m == 0 ? lines.first : lines.second;
         Double v1L = vertL.getLength();
         Double v2L = horzL.getLength();
-        int adjustmentMultiplier = vertL.getLength() > horzL.getLength() ? -1 : 1;
-        int totalAdjustment = 0;
-        while(vertL.getLength() > horzL.getLength() + 10 || vertL.getLength() < horzL.getLength() - 10){
-            vertL.start.y += (adjustmentMultiplier * 5);
-            totalAdjustment += (adjustmentMultiplier * 5);
-        }
-        vertL.start.y += totalAdjustment;
+        Double horzLen = horzL.getLength();
+        Double vertLen = vertL.getLength();
+        vertL.start.y += 2 * (horzLen - vertLen);
         return lines;
 
     }
