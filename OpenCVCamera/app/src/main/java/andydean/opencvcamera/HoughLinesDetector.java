@@ -11,6 +11,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.LineSegmentDetector;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -438,6 +439,33 @@ public class HoughLinesDetector extends CubeDetector{
     }*/
 
     /**
+     * Adjust the end point of the vertical line so that the two lines are of equal length
+     * @param lines **The pair of lines to adjust**
+     * @return pair **The pair of adjusted lines**
+     */
+    private Pair<Line,Line> adjustVertLine(Pair<Line, Line> lines){
+        //Check gradients of lines, if they aren't vert and horizontal then don't adjust
+        if(lines.first.m != Double.POSITIVE_INFINITY && lines.second.m != Double.POSITIVE_INFINITY)
+            return lines;
+        if(lines.first.m != 0 && lines.second.m != 0)
+            return lines;
+
+
+        //Find which line is vertical, and which is horizontal
+        Line vertL = lines.first.m == Double.POSITIVE_INFINITY ? lines.first : lines.second;
+        Line horzL = lines.first.m == 0 ? lines.first : lines.second;
+        Double v1L = vertL.getLength();
+        Double v2L = horzL.getLength();
+        int adjustmentMultiplier = vertL.getLength() > horzL.getLength() ? -1 : 1;
+        while(vertL.getLength() > horzL.getLength() + 10 || vertL.getLength() < horzL.getLength() - 10){
+            vertL.start.y = vertL.start.y + (adjustmentMultiplier * 5);
+        }
+
+        return lines;
+
+    }
+
+    /**
      * Find the two bins that have the most vectors
      * @param bin **Lines that have been grouped into Lists of parallel lines**
      * @return newBin **The two largest groups of parallel lines**
@@ -518,9 +546,13 @@ public class HoughLinesDetector extends CubeDetector{
 
             ArrayList<Pair<Line, Line>> intersectingLines = Line.findAllIntersectingLines(Line.foldList(linesAfterJoining));
             if (intersectingLines.size() == 2) {
+
+                //Shorten length of longest line to the length of the shorter one
+                //Decrease the largest y coords
+                adjustVertLine(intersectingLines.get(0));
                 corners = findContainingCorners(intersectingLines.get(0).first, intersectingLines.get(0).second);
-                if(corners != null)
-                    Toast.makeText(context, corners.toString(), Toast.LENGTH_LONG).show();
+                //if(corners != null)
+                    //Toast.makeText(context, corners.toString(), Toast.LENGTH_LONG).show();
                 cornersFound = true;
             } else {
                 //int before = variables.get(R.id.perpendicular_dist_min).getVal();

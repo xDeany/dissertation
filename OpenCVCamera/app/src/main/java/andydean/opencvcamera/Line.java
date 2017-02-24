@@ -228,4 +228,8 @@ public class Line {
 
         return allIntersectingLines;
     }
+
+    public double getLength(){
+        return Math.sqrt(((start.x - end.x) * (start.x - end.x)) + ((start.y - end.y)*(start.y - end.y)));
+    }
 }
