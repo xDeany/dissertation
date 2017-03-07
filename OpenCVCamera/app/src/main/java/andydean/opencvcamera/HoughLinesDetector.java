@@ -458,7 +458,7 @@ public class HoughLinesDetector extends CubeDetector{
         Double v2L = horzL.getLength();
         Double horzLen = horzL.getLength();
         Double vertLen = vertL.getLength();
-        vertL.start.y += 2 * (horzLen - vertLen);
+        vertL.start.y += 1 * (horzLen - vertLen);
         return lines;
 
     }
@@ -680,6 +680,7 @@ public class HoughLinesDetector extends CubeDetector{
 
             ArrayList<Pair<Line, Line>> intersectingLines = Line.findAllIntersectingLines(Line.foldList(linesAfterJoining));
             if (intersectingLines.size() == 2) {
+                adjustVertLine(intersectingLines.get(0));
                 corners = findContainingCorners(intersectingLines.get(0).first, intersectingLines.get(0).second);
                 //Toast.makeText(context, corners.toString(), Toast.LENGTH_LONG).show();
                 cornersFound = true;

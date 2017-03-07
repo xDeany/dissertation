@@ -64,7 +64,7 @@ public class SelectionScreen extends AppCompatActivity {
                         CubeDetector detector = new HoughLinesDetector(SelectionScreen.this);
                         ArrayList<Point> corners = detector.testDetectCube(img);
                         String strCorners = corners.toString();
-                        File file = new File(path + "/test_corners_1b.txt");
+                        File file = new File(path + "/test_corners_1d.txt");
                         FileOutputStream fOut = new FileOutputStream(file, true);
                         byte[] bs = strCorners.getBytes();
                         fOut.write(strCorners.getBytes());
