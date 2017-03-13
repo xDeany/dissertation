@@ -1,17 +1,13 @@
 package andydean.opencvcamera;
 
-import android.app.Activity;
 import android.content.Context;
 import android.util.Pair;
-import android.widget.Toast;
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.imgproc.LineSegmentDetector;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -191,7 +187,7 @@ public class HoughLinesDetector extends CubeDetector{
                     Line v2 = pLinesItr2.next();
                     Point midV1 = Line.findMidPoint(v1.start, v1.end);
                     Point midV2 = Line.findMidPoint(v2.start, v2.end);
-                    double separation = Line.calcDistBetweenPoints(midV1, midV2);
+                    double separation = Line.calcDistBetween(midV1, midV2);
                     double v1Length = Math.sqrt((v1.dx) * (v1.dx) + (v1.dy) * (v1.dy));
                     double v2Length = Math.sqrt((v2.dx) * (v2.dx) + (v2.dy) * (v2.dy));
                     //The distance betweent the lines should roughly equal the the length of one of the lines
@@ -315,10 +311,10 @@ public class HoughLinesDetector extends CubeDetector{
                 Point midV2 = Line.findMidPoint(v2.start, v2.end);
                 Point mid = Line.findMidPoint(midV1, midV2);
                 //Calc distance from midpoint of both lines to all points
-                double distStartV1ToMid = Line.calcDistBetweenPoints(v1.start, mid);
-                double distStartV2ToMid = Line.calcDistBetweenPoints(v2.start, mid);
-                double distEndV1ToMid = Line.calcDistBetweenPoints(v1.end, mid);
-                double distEndV2ToMid = Line.calcDistBetweenPoints(v2.end, mid);
+                double distStartV1ToMid = Line.calcDistBetween(v1.start, mid);
+                double distStartV2ToMid = Line.calcDistBetween(v2.start, mid);
+                double distEndV1ToMid = Line.calcDistBetween(v1.end, mid);
+                double distEndV2ToMid = Line.calcDistBetween(v2.end, mid);
 
                 //Find most extreme points
                 Point startV1 = distStartV1ToMid > distStartV2ToMid ? v1.start : v2.start;
@@ -549,6 +545,7 @@ public class HoughLinesDetector extends CubeDetector{
                 //Decrease the largest y coords
                 adjustVertLine(intersectingLines.get(0));
                 corners = findContainingCorners(intersectingLines.get(0).first, intersectingLines.get(0).second);
+                List<Point> centres = ColourDetector.getSquareCentres(corners);
                 //if(corners != null)
                     //Toast.makeText(context, corners.toString(), Toast.LENGTH_LONG).show();
                 cornersFound = true;
