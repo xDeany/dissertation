@@ -138,6 +138,60 @@ public class HoughLinesDetector extends CubeDetector{
         return imageWithPoints;
     }
 
+    /**
+     * Creates a clone of an input image and draws the points on to the clone in the specified colour
+     * @param points **List of Points to draw**
+     * @param image **Image to be drawn on to**
+     * @return imageWithPoints
+     */
+    private Mat drawPointsColour(List<Pair<Point, Character>> points, Mat image){
+        Mat imageWithPoints = image.clone();
+        for(Pair<Point, Character> p : points) {
+            double[] rgbVals = new double[3];
+            switch(p.second){
+                case 'R':
+                    rgbVals[0] = 255;
+                    rgbVals[1] = 0;
+                    rgbVals[2] = 0;
+                    break;
+                case 'O':
+                    rgbVals[0] = 255;
+                    rgbVals[1] = 140;
+                    rgbVals[2] = 0;
+                    break;
+                case 'Y':
+                    rgbVals[0] = 255;
+                    rgbVals[1] = 255;
+                    rgbVals[2] = 0;
+                    break;
+                case 'G':
+                    rgbVals[0] = 0;
+                    rgbVals[1] = 125;
+                    rgbVals[2] = 0;
+                    break;
+                case 'B':
+                    rgbVals[0] = 0;
+                    rgbVals[1] = 0;
+                    rgbVals[2] = 255;
+                    break;
+                case 'W':
+                    rgbVals[0] = 255;
+                    rgbVals[1] = 255;
+                    rgbVals[2] = 255;
+                    break;
+                case 'X':
+                    rgbVals[0] = 0;
+                    rgbVals[1] = 0;
+                    rgbVals[2] = 0;
+                    break;
+
+            }
+            Imgproc.circle(imageWithPoints, p.first, 8, new Scalar(rgbVals[0], rgbVals[1], rgbVals[2], 255), 40);
+        }
+
+        return imageWithPoints;
+    }
+
     /*
      * Draws the lines connecting valid pairs of parallel lines as found by findPairsOfParallelLines
      * @param pairsOfLines
@@ -533,22 +587,26 @@ public class HoughLinesDetector extends CubeDetector{
 
         boolean cornersFound = false;
         ArrayList<Point> corners = new ArrayList<>(4);
-
+        List<Pair<Point, Character>> colours = new ArrayList<>(9);
         //Keep grouping lines until left with a single pair of intersecting lines
         do {
             linesAfterJoining = joinCloseLines(bestParallelLines);
 
             ArrayList<Pair<Line, Line>> intersectingLines = Line.findAllIntersectingLines(Line.foldList(linesAfterJoining));
             if (intersectingLines.size() == 2) {
-
+                boolean outOfBoundsCorner = false;
                 //Shorten length of longest line to the length of the shorter one
                 //Decrease the largest y coords
                 adjustVertLine(intersectingLines.get(0));
                 corners = findContainingCorners(intersectingLines.get(0).first, intersectingLines.get(0).second);
-                List<Point> centres = ColourDetector.getSquareCentres(corners);
-                //if(corners != null)
-                    //Toast.makeText(context, corners.toString(), Toast.LENGTH_LONG).show();
-                cornersFound = true;
+                for (Point corner : corners)
+                    if (corner.x > image.width() || corner.y > image.height())
+                        outOfBoundsCorner = true;
+
+                if(!outOfBoundsCorner) {
+                    colours = ColourDetector.detectColour(image, corners, 3);
+                    cornersFound = true;
+                }
             } else {
                 //int before = variables.get(R.id.perpendicular_dist_min).getVal();
                 variables.get(R.id.perpendicular_dist_min).adjustVal(variables.get(R.id.perpendicular_dist_increment).getVal());
@@ -564,19 +622,27 @@ public class HoughLinesDetector extends CubeDetector{
 
         Mat onlyCorners = cornersFound ?
                 drawPoints(corners, blankCanvas) :
-                image.clone();
+                null;
 
         Mat overlayCorners = cornersFound ?
                 drawPoints(corners, image) :
-                image.clone();
+                null;
 
         Mat onlyCornersAndLines = cornersFound ?
                 drawLines(Line.foldList(linesAfterJoining), onlyCorners) :
-                image.clone();
+                null;
 
         Mat overlayCornersAndLines = cornersFound ?
                 drawLines(Line.foldList(linesAfterJoining), overlayCorners) :
-                image.clone();
+                null;
+
+        Mat onlyCentres = cornersFound ?
+                drawPointsColour(colours, blankCanvas) :
+                null;
+
+        Mat overlayCentres = cornersFound ?
+                drawPointsColour(colours, image) :
+                null;
 
         Mat toReturn;
 
@@ -609,16 +675,22 @@ public class HoughLinesDetector extends CubeDetector{
                 toReturn = overlayGrouped.clone();
                 break;
             case "corners_only":
-                toReturn = onlyCorners.clone();
+                toReturn = cornersFound ? onlyCorners.clone() : image.clone();
                 break;
             case "corners_overlay":
-                toReturn = overlayCorners.clone();
+                toReturn = cornersFound ? overlayCorners.clone() : image.clone();
                 break;
             case "corners_and_lines_only":
-                toReturn = onlyCornersAndLines.clone();
+                toReturn = cornersFound ? onlyCornersAndLines.clone() : image.clone();
                 break;
             case "corners_and_lines_overlay":
-                toReturn = overlayCornersAndLines.clone();
+                toReturn = cornersFound ? overlayCornersAndLines.clone() : image.clone();
+                break;
+            case "centres_only":
+                toReturn = cornersFound ? onlyCentres.clone() : image.clone();
+                break;
+            case "centres_overlay":
+                toReturn = cornersFound ? overlayCentres.clone() : image.clone();
                 break;
             default:
                 toReturn = blankCanvas.clone();
@@ -634,10 +706,14 @@ public class HoughLinesDetector extends CubeDetector{
         overlayBestParallelLines.release();
         onlyGrouped.release();
         overlayGrouped.release();
-        onlyCorners.release();
-        overlayCorners.release();
-        onlyCornersAndLines.release();
-        overlayCornersAndLines.release();
+        if(cornersFound) {
+            onlyCorners.release();
+            overlayCorners.release();
+            onlyCornersAndLines.release();
+            overlayCornersAndLines.release();
+            onlyCentres.release();
+            overlayCentres.release();
+        }
 
         return toReturn;
     }

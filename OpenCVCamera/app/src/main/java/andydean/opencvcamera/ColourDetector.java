@@ -2,11 +2,13 @@ package andydean.opencvcamera;
 
 import android.util.Pair;
 
+import org.apache.commons.math3.distribution.NormalDistribution;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -14,25 +16,159 @@ import java.util.List;
  */
 
 public class ColourDetector {
-    /*
-    public static ArrayList<Pair<Point, Character>> detectColour(Mat rgbImg, ArrayList<Point> corners){
-        ArrayList<Pair<Character, Double[]>> rgbHistograms = new ArrayList<>();
-        rgbHistograms.add(new Pair<>('R', new Double[]{171.9473684, 5.109695, 43.029824561, 8.155038, 42.1345, 8.234042}));
-        rgbHistograms.add(new Pair<>('O', new Double[]{254.994152, 0.076471911, 91.60233918, 7.467954702, 33.06432749, 10.0821019}));
-        rgbHistograms.add(new Pair<>('Y', new Double[]{237.1403509, 6.392381301, 246.497076, 5.903512682, 35.14619883, 9.729683215}));
-        rgbHistograms.add(new Pair<>('G', new Double[]{2.964912281, 7.601002052, 188.5614035, 6.440727609, 35.92397661, 10.60078013}));
-        rgbHistograms.add(new Pair<>('B', new Double[]{22.77777778, 7.801038979, 50.99415205, 8.597877355, 102.4853801, 9.837118615}));
-        rgbHistograms.add(new Pair<>('W', new Double[]{212.6900585, 5.502177697, 216.2748538, 5.865192375, 214.8947368, 5.801675855}));
+
+
+    /**
+     * The enclosing function for colour detection. It finds the points to check from the corners of
+     * the cube. Once found, it reads the rgb values and adjusts the white ballance before finally
+     * calculating which colour it is most likely to be
+     * @param rgbaImg ** The raw image in bgra colour format **
+     * @param corners ** The detected corners of the cube **
+     * @param windowSize ** The size of the window to check around the cube **
+     * @return colours ** The points detected with their corresponding colour values **
+     */
+    public static List<Pair<Point, Character>> detectColour(Mat rgbaImg, List<Point> corners, int windowSize){
+        double[] rgbWhiteVals = {170, 170, 170};
+        ArrayList<Pair<Character, NormalDistribution[]>> rgbDistributions = new ArrayList<>();
+
+        rgbDistributions.add(new Pair<>('R', new NormalDistribution[]{new NormalDistribution(146.12, 4.33), new NormalDistribution(36.78, 6.92), new NormalDistribution(35.85, 7.02)}));
+        rgbDistributions.add(new Pair<>('O', new NormalDistribution[]{new NormalDistribution(235.80, 6.87), new NormalDistribution(77.85, 6.31), new NormalDistribution(28.09, 8.60)}));
+        rgbDistributions.add(new Pair<>('Y', new NormalDistribution[]{new NormalDistribution(201.55, 5.44), new NormalDistribution(210.01, 5.91), new NormalDistribution(29.93, 8.22)}));
+        rgbDistributions.add(new Pair<>('G', new NormalDistribution[]{new NormalDistribution(2.50, 6.49), new NormalDistribution(160.27, 5.50), new NormalDistribution(30.54, 9.03)}));
+        rgbDistributions.add(new Pair<>('B', new NormalDistribution[]{new NormalDistribution(19.33, 6.63), new NormalDistribution(43.35, 7.31), new NormalDistribution(87.13, 8.33)}));
+        rgbDistributions.add(new Pair<>('W', new NormalDistribution[]{new NormalDistribution(180.86, 4.67), new NormalDistribution(183.87, 4.94), new NormalDistribution(182.62, 4.87)}));
         
         List<Point> squareCentres = getSquareCentres(corners);
-        //List<Pair<Point, Double[]>> rgbVals = getRGBRaw(squareCentres, rgbImg);
-        //List<Pair<Point, Double[]>> rgbValsAdjusted = adjustForWhiteBallance(rgbVals, rgbImg);
-        //List<Pair<Point, Character>>colours = getColourLabels(rgbValsAdjusted, rgbHistograms);
+        List<Pair<Point, Double[]>> rgbVals = getRGBRaw(squareCentres, rgbaImg, windowSize);
+        double[] whiteBalRatio = obtainWhiteBallanceRatio(rgbaImg, rgbWhiteVals);
+        List<Pair<Point, Double[]>> rgbValsAdjusted = adjustForWhiteBallance(rgbVals, whiteBalRatio);
+        List<Pair<Point, Character>> colours = getColourLabels(rgbValsAdjusted, rgbDistributions);
 
         return colours;
-    }*/
+    }
 
-    public static List<Point> getSquareCentres(ArrayList<Point> corners) {
+    /**
+     * From the adjusted rgb values of the points selected, it checks them against the histograms
+     * for all 6 colour values and choses the most likely colour it is
+     * @param rgbValsAdjusted ** The adjusted rgb point values **
+     * @param rgbHistograms ** The histograms to run the colours against **
+     * @return labels ** A list of point-colour pairs **
+     */
+    private static List<Pair<Point,Character>> getColourLabels(List<Pair<Point, Double[]>> rgbValsAdjusted, ArrayList<Pair<Character, NormalDistribution[]>> rgbHistograms) {
+        List<Pair<Point,Character>> labels = new ArrayList<>();
+        for (Pair<Point,Double[]> point : rgbValsAdjusted){
+            Character mostLikelyColour = 'X';
+            double colourDensityProbability = 0;
+            for(Pair<Character, NormalDistribution[]> colHistograms : rgbHistograms){
+                double sumDensity = 0;
+                for(int i = 0 ; i < 3; i++){
+                    NormalDistribution dist = colHistograms.second[i];
+                    sumDensity += dist.density(point.second[i]);
+                }
+                if(sumDensity > colourDensityProbability){
+                    mostLikelyColour = colHistograms.first;
+                    colourDensityProbability = sumDensity;
+                }
+            }
+            labels.add(new Pair<>(point.first, mostLikelyColour));
+        }
+        return labels;
+    }
+
+    /**
+     * Multiply each detected pixel by the white ballance ratio (more efficient than adjust the entire image)
+     * @param rgbVals ** Values to adjust **
+     * @param whiteBalRatio ** The ratio to adjust them by **
+     * @return rgbVals ** Adjusted values **
+     */
+    private static List<Pair<Point,Double[]>> adjustForWhiteBallance(List<Pair<Point, Double[]>> rgbVals, double[] whiteBalRatio) {
+        for (Pair<Point, Double[]> point : rgbVals) {
+            point.second[0] = point.second[0] * whiteBalRatio[0];
+            point.second[1] = point.second[1] * whiteBalRatio[1];
+            point.second[2] = point.second[2] * whiteBalRatio[2];
+        }
+        return rgbVals;
+    }
+
+    /**
+     * From the image, take a sample of a 5x5 window of top left pixels as white (assuming on paper background)
+     * Use those pixels to find ratio to adjust all pixels by (white ballance ratio)
+     * @param rgbaImg ** Img to adjust **
+     * @param rgbWhiteVals ** The value that white should be in the top left **s
+     * @return rgbRatio ** The ratio that all pixels should be multiplied by **
+     */
+    private static double[] obtainWhiteBallanceRatio(Mat rgbaImg, double[] rgbWhiteVals){
+        //Obtain sample of upper-left pixels
+        double[] rgbaTotal = {0,0,0,0};
+        int totalCount = 0;
+        for(int i = 1; i < 5; i++){
+            for(int j = 1; j < 5; j++){
+                double[] rgba = rgbaImg.get(j, i);
+                rgbaTotal[0] += rgba[0];
+                rgbaTotal[1] += rgba[1];
+                rgbaTotal[2] += rgba[2];
+                rgbaTotal[3] += rgba[3];
+                totalCount++;
+            }
+        }
+        //Average the rgb values
+        double[] rgbWhite = {0,0,0};
+        rgbWhite[0] = rgbaTotal[0] / totalCount;
+        rgbWhite[1] = rgbaTotal[1] / totalCount;
+        rgbWhite[2] = rgbaTotal[2] / totalCount;
+
+        //Find ratio for white ballance
+        double[] rgbRatio = {0,0,0};
+        rgbRatio[0] = rgbWhiteVals[0] / rgbWhite[0];
+        rgbRatio[1] = rgbWhiteVals[1] / rgbWhite[1];
+        rgbRatio[2] = rgbWhiteVals[2] / rgbWhite[2];
+
+        return rgbRatio;
+    }
+
+    /**
+     * From the detected points, it averages the rgb values of the pixels surrounding it
+     * @param squareCentres ** The pixel locations to be analysed **
+     * @param rgbaImg ** The image to read from **
+     * @return rgbValus ** The average rgb value for each point
+     */
+    private static List<Pair<Point,Double[]>> getRGBRaw(List<Point> squareCentres, Mat rgbaImg, int windowSize) {
+        Iterator<Point> coordsItr = squareCentres.iterator();
+        List<Pair<Point, Double[]>> rgbValues = new ArrayList<>();
+        while(coordsItr.hasNext()){
+            Point coord = coordsItr.next();
+            double[] rgbaTotal = {0,0,0,0};
+            int totalCount = 0;
+            for(int i = -1 * windowSize; i < windowSize; i++){
+                for(int j = -1 * windowSize; j < windowSize; j++){
+                    int x = (int)coord.x + i;
+                    int y = (int)coord.y + j;
+                    if(x >= 0 && y >=0) {
+                        double[] rgba = rgbaImg.get(y, x);
+                        rgbaTotal[0] += rgba[0];
+                        rgbaTotal[1] += rgba[1];
+                        rgbaTotal[2] += rgba[2];
+                        rgbaTotal[3] += rgba[3];
+                        totalCount++;
+                    }
+                }
+            }
+            Double[] rgb = new Double[3];
+            rgb[0] = rgbaTotal[0] / totalCount;
+            rgb[1] = rgbaTotal[1] / totalCount;
+            rgb[2] = rgbaTotal[2] / totalCount;
+            rgbValues.add(new Pair<>(coord,rgb));
+        }
+        return rgbValues;
+    }
+
+    /**
+     * From the corners supplied, it finds the ones that are opposite and then uses ther locations
+     * to infer the coordinates of the sticker centres
+     * @param corners ** Corners to be analysed **
+     * @return centres ** The locations of the centres of the stickers **
+     */
+    private static List<Point> getSquareCentres(List<Point> corners) {
         List<Pair<Point, Point>> diagonals = getDiagonals(corners);
         Point a = diagonals.get(0).first;
         Point b = diagonals.get(0).second;
@@ -69,7 +205,7 @@ public class ColourDetector {
      * @param corners ** Corners to be analysed **
      * @return bothDiags ** An arraylist containing both pairs of corners **
      */
-    private static List<Pair<Point,Point>> getDiagonals(ArrayList<Point> corners){
+    private static List<Pair<Point,Point>> getDiagonals(List<Point> corners){
         Point a = corners.get(0);
         Point b = corners.get(1);
         Point c = corners.get(2);
@@ -84,7 +220,7 @@ public class ColourDetector {
         distances.add(new Pair<>(new Pair<>(c, d), Line.calcDistBetween(c, d))); //cd
 
         Pair<Point, Point> diagA = new Pair<>(null, null);
-        Pair<Point, Point> diagB = new Pair<>(null, null);
+        Pair<Point, Point> diagB;
         //Find the two pairs farthest apart
         double max = 0;
         int pair = 0;

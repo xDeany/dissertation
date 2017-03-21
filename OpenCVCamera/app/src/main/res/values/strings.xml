@@ -17,5 +17,7 @@
         <item>corners_overlay</item>
         <item>corners_and_lines_only</item>
         <item>corners_and_lines_overlay</item>
+        <item>centres_only</item>
+        <item>centres_overlay</item>
     </string-array>
 </resources>
