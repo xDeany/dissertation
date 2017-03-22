@@ -1,10 +1,13 @@
 package andydean.opencvcamera;
 
+import android.util.Pair;
+
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by Andy on 14/11/2016.
@@ -17,7 +20,10 @@ public interface CubeDetectorInterface {
 
     public SettingsVariable getInitialVar();
 
-    public Mat detectCube(Mat image, String imageToReturn);
+    public Mat detectCubeImageDebug(Mat image, String imageToReturn);
 
-    public ArrayList<Point> testDetectCube(Mat image);
+    public List<Point> detectCubeLocation(Mat image);
+
+    public List<Pair<Point, Character>> detectCubeColour(Mat image, List<Point> corners);
+
 }

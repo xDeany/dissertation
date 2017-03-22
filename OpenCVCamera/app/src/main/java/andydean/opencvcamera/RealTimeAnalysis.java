@@ -108,7 +108,7 @@ public class RealTimeAnalysis extends AppCompatActivity implements CameraBridgeV
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         cameraFrameRGB = inputFrame.rgba();
-        imageWithLines = detector.detectCube(cameraFrameRGB, imageToReturn);
+        imageWithLines = detector.detectCubeImageDebug(cameraFrameRGB, imageToReturn);
         return imageWithLines;
     }
 

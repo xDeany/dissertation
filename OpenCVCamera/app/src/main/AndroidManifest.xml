@@ -5,8 +5,6 @@
     <uses-permission android:name="android.permission.CAMERA" />
 
     <uses-feature android:name="android.hardware.camera" />
-    <uses-feature android:name="android.hardware.camera.front" />
-    <uses-feature android:name="android.hardware.camera.front.autofocus" />
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -41,12 +39,7 @@
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".MainDetector"
-            android:label="@string/title_activity_main_detector"
-            android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="andydean.opencvcamera.SelectionScreen" />
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 
 </manifest>

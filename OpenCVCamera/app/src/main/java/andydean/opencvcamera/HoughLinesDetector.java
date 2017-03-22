@@ -560,7 +560,7 @@ public class HoughLinesDetector extends CubeDetector{
      * @return toReturn **The image corresponding to imageToReturn, returns the inital image if there is an error**
      */
     @Override
-    public Mat detectCube(Mat image, String imageToReturn) {
+    public Mat detectCubeImageDebug(Mat image, String imageToReturn) {
         variables.get(R.id.perpendicular_dist_min).setMax(image.cols()>image.rows()?image.cols():image.rows());
         Mat blankCanvas = new Mat(image.rows(), image.cols(), CvType.CV_8UC4, new Scalar(0,0,0,255));
 
@@ -723,7 +723,7 @@ public class HoughLinesDetector extends CubeDetector{
      * @param image ** The image to be analysed **
      * @return corners **The corners of the cube the detector finds **
      */
-    public ArrayList<Point> testDetectCube(Mat image){
+    public List<Point> detectCubeLocation(Mat image){
         variables.get(R.id.perpendicular_dist_min).setMax(image.cols()>image.rows()?image.cols():image.rows());
 
         Mat grayscaleImage = toGrayscale(image);
@@ -745,8 +745,8 @@ public class HoughLinesDetector extends CubeDetector{
 
         boolean cornersFound = false;
         ArrayList<Point> corners = new ArrayList<>(4);
-        int before = 0;
-        int after = 0;
+        //int before = 0;
+        //int after = 0;
         //Keep grouping lines until left with a single pair of intersecting lines
         do {
             linesAfterJoining = joinCloseLines(bestParallelLines);
@@ -758,9 +758,9 @@ public class HoughLinesDetector extends CubeDetector{
                 //Toast.makeText(context, corners.toString(), Toast.LENGTH_LONG).show();
                 cornersFound = true;
             } else {
-                before = variables.get(R.id.perpendicular_dist_min).getVal();
+                //before = variables.get(R.id.perpendicular_dist_min).getVal();
                 variables.get(R.id.perpendicular_dist_min).adjustVal(variables.get(R.id.perpendicular_dist_increment).getVal());
-                after = variables.get(R.id.perpendicular_dist_min).getVal();
+                //after = variables.get(R.id.perpendicular_dist_min).getVal();
 
             }
         }while(!cornersFound && variables.get(R.id.perpendicular_dist_min).getVal() <= (variables.get(R.id.perpendicular_dist_min).getMax() - variables.get(R.id.perpendicular_dist_increment).getVal()));
@@ -771,8 +771,23 @@ public class HoughLinesDetector extends CubeDetector{
         blurredImage.release();
         onlyCanny.release();
         houghLines.release();
-        before = after;
+        //before = after;
 
         return corners;
+    }
+
+    /**
+     * If given an image and the location of the corners of the cube, it will check the corners are
+     * within the image boundaries, and then run the colour detector.
+     * @param image ** Image to be analysed **
+     * @param corners ** Corners of the cube within that image **
+     * @return colours ** The locations and colours of each square on the cube **
+     */
+    public List<Pair<Point,Character>> detectCubeColour(Mat image, List<Point> corners){
+        for (Point corner : corners)
+            if (corner.x > image.width() || corner.y > image.height())
+                return null;
+
+        return ColourDetector.detectColour(image, corners, 3);
     }
 }

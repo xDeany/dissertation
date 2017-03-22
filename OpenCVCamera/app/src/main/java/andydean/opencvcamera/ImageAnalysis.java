@@ -16,7 +16,6 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -115,7 +114,7 @@ public class ImageAnalysis extends AppCompatActivity implements AdapterView.OnIt
 
                 imageFromFile = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8SC4);
                 Utils.bitmapToMat(image, imageFromFile);
-                imageWithLines = detector.detectCube(imageFromFile, imageToReturn);
+                imageWithLines = detector.detectCubeImageDebug(imageFromFile, imageToReturn);
 
                 drawMatToImageView(imageWithLines);
 
@@ -147,7 +146,7 @@ public class ImageAnalysis extends AppCompatActivity implements AdapterView.OnIt
         imageToReturn = parent.getItemAtPosition(position).toString();
         if(imageFromFile != null) {
             //Toast.makeText(ImageAnalysis.this, "Detecting Cube", Toast.LENGTH_LONG).show();
-            imageWithLines = detector.detectCube(imageFromFile, imageToReturn);
+            imageWithLines = detector.detectCubeImageDebug(imageFromFile, imageToReturn);
             drawMatToImageView(imageWithLines);
             //Toast.makeText(ImageAnalysis.this, "Cube Detected", Toast.LENGTH_LONG).show();
         }
@@ -208,7 +207,7 @@ public class ImageAnalysis extends AppCompatActivity implements AdapterView.OnIt
                         seekbar_var.setVal(progress_value);
                         if(imageFromFile != null) {
                             //Toast.makeText(ImageAnalysis.this, "Detecting Cube", Toast.LENGTH_LONG).show();
-                            imageWithLines = detector.detectCube(imageFromFile, imageToReturn);
+                            imageWithLines = detector.detectCubeImageDebug(imageFromFile, imageToReturn);
                             drawMatToImageView(imageWithLines);
                             //Toast.makeText(ImageAnalysis.this, "Cube Detected", Toast.LENGTH_LONG).show();
                         }

@@ -1,6 +1,5 @@
 package andydean.opencvcamera;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
@@ -20,9 +19,7 @@ import org.opencv.imgcodecs.Imgcodecs;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
+import java.util.List;
 
 public class SelectionScreen extends AppCompatActivity {
 
@@ -63,7 +60,7 @@ public class SelectionScreen extends AppCompatActivity {
                         int id = SelectionScreen.this.getResources().getIdentifier("cube_" + i, "drawable", SelectionScreen.this.getPackageName());
                         Mat img = Utils.loadResource(SelectionScreen.this, id, Imgcodecs.CV_LOAD_IMAGE_COLOR);
                         CubeDetector detector = new HoughLinesDetector(SelectionScreen.this);
-                        ArrayList<Point> corners = detector.testDetectCube(img);
+                        List<Point> corners = detector.detectCubeLocation(img);
                         String strCorners = corners.toString();
                         File file = new File(path + "/test_corners_1d.txt");
                         FileOutputStream fOut = new FileOutputStream(file, true);
