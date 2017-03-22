@@ -49,6 +49,7 @@ public class SelectionScreen extends AppCompatActivity {
         Button houghLinesRT = (Button) findViewById(R.id.hough_lines_real_time_button);
         Button houghLinesImage = (Button) findViewById(R.id.hough_lines_image_button);
         Button testLocationDetector = (Button) findViewById(R.id.test_location_detector);
+        Button mainDetector = (Button) findViewById(R.id.main_detector_button);
 
 
         testLocationDetector.setOnClickListener(new View.OnClickListener(){
@@ -86,6 +87,15 @@ public class SelectionScreen extends AppCompatActivity {
             public void onClick(View v)
             {
                 Intent i = new Intent(SelectionScreen.this, RealTimeAnalysis.class);
+                startActivity(i);
+            }
+        });
+
+        mainDetector.setOnClickListener(new View.OnClickListener()
+        {
+            public void onClick(View v)
+            {
+                Intent i = new Intent(SelectionScreen.this, MainDetector.class);
                 startActivity(i);
             }
         });

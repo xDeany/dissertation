@@ -20,4 +20,5 @@
         <item>centres_only</item>
         <item>centres_overlay</item>
     </string-array>
+    <string name="title_activity_main_detector">MainDetector</string>
 </resources>
