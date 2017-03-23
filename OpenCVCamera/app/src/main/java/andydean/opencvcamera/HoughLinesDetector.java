@@ -144,7 +144,7 @@ public class HoughLinesDetector extends CubeDetector{
      * @param image **Image to be drawn on to**
      * @return imageWithPoints
      */
-    private Mat drawPointsColour(List<Pair<Point, Character>> points, Mat image){
+    public static Mat drawPointsColour(List<Pair<Point, Character>> points, Mat image){
         Mat imageWithPoints = image.clone();
         for(Pair<Point, Character> p : points) {
             double[] rgbVals = new double[3];

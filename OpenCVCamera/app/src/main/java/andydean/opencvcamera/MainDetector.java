@@ -10,6 +10,7 @@ import android.util.Pair;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -29,10 +30,13 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
 
     private static String TAG = "MainDetector";
     JavaCameraView javaCameraView;
-    ImageView singleFrameView;
-    Mat cameraFrameStream, capturedFrame;
+    Mat cameraFrameStream;
     FloatingActionButton captureCubeButton;
     CubeDetector houghDetector;
+    long time = System.currentTimeMillis();
+    boolean videoMode = true;
+    List<List<Pair<Point, Character>>> captured;
+    List<Character> averaged;
 
     BaseLoaderCallback mLoaderCallBack = new BaseLoaderCallback(this) {
         @Override
@@ -50,7 +54,7 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
     };
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_detector);
         captureCubeButton = (FloatingActionButton) findViewById(R.id.floatingActionButton);
@@ -60,26 +64,15 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
         javaCameraView.setCameraIndex(0);
         javaCameraView.setCvCameraViewListener(this);
 
-        singleFrameView = (ImageView) findViewById(R.id.imageView2);
-        singleFrameView.setVisibility(SurfaceView.INVISIBLE);
-
         houghDetector = new HoughLinesDetector(this);
+
+        captured = new ArrayList<>();
 
         captureCubeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                capturedFrame = cameraFrameStream.clone();
-                List<Point> corners = houghDetector.detectCubeLocation(capturedFrame);
-                List<Pair<Point, Character>> colours;
-                if(!corners.isEmpty()) {
-                    colours = houghDetector.detectCubeColour(capturedFrame, corners);
-                    List<Character> cols = new ArrayList<Character>();
-                    for(Pair<Point, Character> p : colours)
-                        cols.add(p.second);
-                    String str = cols.toString();
-                    Toast.makeText(MainDetector.this, str, Toast.LENGTH_LONG).show();
-                }
-                capturedFrame.release();
+                videoMode = false;
+                time = System.currentTimeMillis();
             }
         });
     }
@@ -97,6 +90,24 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         cameraFrameStream = inputFrame.rgba();
+        if(!videoMode && System.currentTimeMillis() < time + 3000) {
+            List<Point> corners = houghDetector.detectCubeLocation(cameraFrameStream);
+            List<Pair<Point, Character>> colours;
+            if (!corners.isEmpty()) {
+                colours = houghDetector.detectCubeColour(cameraFrameStream, corners);
+
+                if (colours != null) {
+                    cameraFrameStream = HoughLinesDetector.drawPointsColour(colours, cameraFrameStream);
+                    captured.add(colours);
+                }
+            }
+        }else {
+            if(!captured.isEmpty()){
+                averaged = averageColours(captured);
+                captured = new ArrayList<>();
+            }
+            videoMode = true;
+        }
         return cameraFrameStream;
     }
 
@@ -119,5 +130,77 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallBack);
         }
 
+    }
+
+    private List<Character> averageColours(List<List<Pair<Point,Character>>> totalDetected){
+        List<Character> averagedColours = new ArrayList<>(9);
+        //Each row corresponds to a colour
+        //0 - R
+        //1 - O, Y, G, B, W, X (no colour detected)
+        //Each column corresponds to a different sticker - see ColourDetector.getSquaresCentres
+        int[][] totalMatrix = new int[9][7];
+        for(List<Pair<Point, Character>> lpc : totalDetected){
+            for(int i = 0; i < 9 ; i++){
+                Pair<Point,Character> pc = lpc.get(i);
+                switch (pc.second){
+                    case 'R':
+                        totalMatrix[i][0]++;
+                        break;
+                    case 'O':
+                        totalMatrix[i][1]++;
+                        break;
+                    case 'Y':
+                        totalMatrix[i][2]++;
+                        break;
+                    case 'G':
+                        totalMatrix[i][3]++;
+                        break;
+                    case 'B':
+                        totalMatrix[i][4]++;
+                        break;
+                    case 'W':
+                        totalMatrix[i][5]++;
+                        break;
+                    default:
+                        totalMatrix[i][6]++;
+                        break;
+                }
+            }
+        }
+
+        for(int i = 0; i<9 ; i++){
+            int maxVal = 0;
+            int maxColour = -1;
+            for(int j = 0; j < 7; j++){
+                if(totalMatrix[i][j] > maxVal){
+                    maxVal = totalMatrix[i][j];
+                    maxColour = j;
+                }
+            }
+            switch(maxColour){
+                case 0:
+                    averagedColours.add('R');
+                    break;
+                case 1:
+                    averagedColours.add('O');
+                    break;
+                case 2:
+                    averagedColours.add('Y');
+                    break;
+                case 3:
+                    averagedColours.add('G');
+                    break;
+                case 4:
+                    averagedColours.add('B');
+                    break;
+                case 5:
+                    averagedColours.add('W');
+                    break;
+                default:
+                    averagedColours.add('X');
+                    break;
+            }
+        }
+        return averagedColours;
     }
 }
