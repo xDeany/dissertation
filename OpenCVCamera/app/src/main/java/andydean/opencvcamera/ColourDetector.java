@@ -48,6 +48,101 @@ public class ColourDetector {
     }
 
     /**
+     * Helper function for translating the sticker colours from char to int
+     * @param c ** Character value of colour **
+     * @return i ** Int value of colour **
+     */
+    public static int getColourInt(char c){
+        switch (c){
+            case 'R':
+                return 0;
+            case 'O':
+                return 1;
+            case 'Y':
+                return 2;
+            case 'G':
+                return 3;
+            case 'B':
+                return 4;
+            case 'W':
+                return 5;
+            default:
+                return 6;
+        }
+    }
+
+    /**
+     * Helper function for translating the sticker colours from int to char
+     * @param i ** Int value of colour **
+     * @return c ** Char value of colour **
+     */
+    public static char getColourChar(int i){
+        switch(i){
+            case 0:
+                return 'R';
+            case 1:
+                return 'O';
+            case 2:
+                return 'Y';
+            case 3:
+                return 'G';
+            case 4:
+                return 'B';
+            case 5:
+                return 'W';
+            default:
+                return 'X';
+        }
+    }
+
+    /**
+     * Translates the char of a colour to the appropriate rgb value
+     * @param c ** Character value of colour **
+     * @return rgbVa;s ** The rgb Values for that colour **
+     */
+    public static double[] getRGB(char c){
+        double[] rgbVals = new double[3];
+        switch(c){
+            case 'R':
+                rgbVals[0] = 255;
+                rgbVals[1] = 0;
+                rgbVals[2] = 0;
+                break;
+            case 'O':
+                rgbVals[0] = 255;
+                rgbVals[1] = 140;
+                rgbVals[2] = 0;
+                break;
+            case 'Y':
+                rgbVals[0] = 255;
+                rgbVals[1] = 255;
+                rgbVals[2] = 0;
+                break;
+            case 'G':
+                rgbVals[0] = 0;
+                rgbVals[1] = 125;
+                rgbVals[2] = 0;
+                break;
+            case 'B':
+                rgbVals[0] = 0;
+                rgbVals[1] = 0;
+                rgbVals[2] = 255;
+                break;
+            case 'W':
+                rgbVals[0] = 255;
+                rgbVals[1] = 255;
+                rgbVals[2] = 255;
+                break;
+            case 'X':
+                rgbVals[0] = 0;
+                rgbVals[1] = 0;
+                rgbVals[2] = 0;
+                break;
+        }
+        return rgbVals;
+    }
+
+    /**
      * From the adjusted rgb values of the points selected, it checks them against the histograms
      * for all 6 colour values and choses the most likely colour it is
      * @param rgbValsAdjusted ** The adjusted rgb point values **

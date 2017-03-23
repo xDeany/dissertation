@@ -147,45 +147,7 @@ public class HoughLinesDetector extends CubeDetector{
     public static Mat drawPointsColour(List<Pair<Point, Character>> points, Mat image){
         Mat imageWithPoints = image.clone();
         for(Pair<Point, Character> p : points) {
-            double[] rgbVals = new double[3];
-            switch(p.second){
-                case 'R':
-                    rgbVals[0] = 255;
-                    rgbVals[1] = 0;
-                    rgbVals[2] = 0;
-                    break;
-                case 'O':
-                    rgbVals[0] = 255;
-                    rgbVals[1] = 140;
-                    rgbVals[2] = 0;
-                    break;
-                case 'Y':
-                    rgbVals[0] = 255;
-                    rgbVals[1] = 255;
-                    rgbVals[2] = 0;
-                    break;
-                case 'G':
-                    rgbVals[0] = 0;
-                    rgbVals[1] = 125;
-                    rgbVals[2] = 0;
-                    break;
-                case 'B':
-                    rgbVals[0] = 0;
-                    rgbVals[1] = 0;
-                    rgbVals[2] = 255;
-                    break;
-                case 'W':
-                    rgbVals[0] = 255;
-                    rgbVals[1] = 255;
-                    rgbVals[2] = 255;
-                    break;
-                case 'X':
-                    rgbVals[0] = 0;
-                    rgbVals[1] = 0;
-                    rgbVals[2] = 0;
-                    break;
-
-            }
+            double[] rgbVals = ColourDetector.getRGB(p.second);
             Imgproc.circle(imageWithPoints, p.first, 8, new Scalar(rgbVals[0], rgbVals[1], rgbVals[2], 255), 40);
         }
 

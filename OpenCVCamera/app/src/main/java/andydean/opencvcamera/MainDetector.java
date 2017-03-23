@@ -1,6 +1,7 @@
 package andydean.opencvcamera;
 
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.media.Image;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -29,14 +30,21 @@ import java.util.List;
 public class MainDetector extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2{
 
     private static String TAG = "MainDetector";
+
+    private static final String VIDEO_STATE = "video_state";
+    private static final String CAPTURE_STATE = "capture_state";
+    private static final String ERROR_CHECK_STATE = "error_check_state";
+
+    private String state = VIDEO_STATE;
     JavaCameraView javaCameraView;
-    Mat cameraFrameStream;
-    FloatingActionButton captureCubeButton;
+    Mat cameraFrameStream, capturedFrame;
+    FloatingActionButton captureCubeButton, validDetectionButton;
     CubeDetector houghDetector;
     long time = System.currentTimeMillis();
-    boolean videoMode = true;
     List<List<Pair<Point, Character>>> captured;
     List<Character> averaged;
+    List<Pair<Point, Character>> averagedAndLocation;
+    List<View> lastSideStored;
 
     BaseLoaderCallback mLoaderCallBack = new BaseLoaderCallback(this) {
         @Override
@@ -58,6 +66,7 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_detector);
         captureCubeButton = (FloatingActionButton) findViewById(R.id.floatingActionButton);
+        validDetectionButton = (FloatingActionButton) findViewById(R.id.floatingActionButton2);
 
         javaCameraView = (JavaCameraView) findViewById(R.id.java_camera_view_main);
         javaCameraView.setVisibility(SurfaceView.VISIBLE);
@@ -68,11 +77,39 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
 
         captured = new ArrayList<>();
 
+        lastSideStored = new ArrayList<>();
+        lastSideStored.add(0,(View) findViewById(R.id.cell1));
+        lastSideStored.add(1,(View) findViewById(R.id.cell2));
+        lastSideStored.add(2,(View) findViewById(R.id.cell3));
+        lastSideStored.add(3,(View) findViewById(R.id.cell4));
+        lastSideStored.add(4,(View) findViewById(R.id.cell5));
+        lastSideStored.add(5,(View) findViewById(R.id.cell6));
+        lastSideStored.add(6,(View) findViewById(R.id.cell7));
+        lastSideStored.add(7,(View) findViewById(R.id.cell8));
+        lastSideStored.add(8,(View) findViewById(R.id.cell9));
+
         captureCubeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                videoMode = false;
-                time = System.currentTimeMillis();
+                if(!state.equals(ERROR_CHECK_STATE)){
+                    state = CAPTURE_STATE;
+                    time = System.currentTimeMillis();
+                }
+            }
+        });
+
+        validDetectionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(state.equals(ERROR_CHECK_STATE)) {
+                    state = VIDEO_STATE;
+                    for(int i = 0; i < 9 ; i++){
+                        Character c = averaged.get(i);
+                        View iv = lastSideStored.get(i);
+                        double[] rgbVals = ColourDetector.getRGB(c);
+                        iv.setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
+                    }
+                }
             }
         });
     }
@@ -90,7 +127,8 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         cameraFrameStream = inputFrame.rgba();
-        if(!videoMode && System.currentTimeMillis() < time + 3000) {
+
+        if(state.equals(CAPTURE_STATE) && System.currentTimeMillis() < time + 3000) {
             List<Point> corners = houghDetector.detectCubeLocation(cameraFrameStream);
             List<Pair<Point, Character>> colours;
             if (!corners.isEmpty()) {
@@ -104,11 +142,20 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
         }else {
             if(!captured.isEmpty()){
                 averaged = averageColours(captured);
+                for(int i = 0; i < 9; i++){
+                    Point p = captured.get(captured.size()-1).get(i).first;
+                    captured.get(captured.size()-1).set(i,new Pair<>(p,averaged.get(i)));
+                }
+                cameraFrameStream = HoughLinesDetector.drawPointsColour(captured.get(captured.size()-1), cameraFrameStream);
+                capturedFrame = cameraFrameStream.clone();
                 captured = new ArrayList<>();
+                state = ERROR_CHECK_STATE;
             }
-            videoMode = true;
         }
-        return cameraFrameStream;
+        if(state.equals(ERROR_CHECK_STATE))
+            return capturedFrame;
+        else
+            return cameraFrameStream;
     }
 
     @Override
@@ -139,34 +186,9 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
         //1 - O, Y, G, B, W, X (no colour detected)
         //Each column corresponds to a different sticker - see ColourDetector.getSquaresCentres
         int[][] totalMatrix = new int[9][7];
-        for(List<Pair<Point, Character>> lpc : totalDetected){
-            for(int i = 0; i < 9 ; i++){
-                Pair<Point,Character> pc = lpc.get(i);
-                switch (pc.second){
-                    case 'R':
-                        totalMatrix[i][0]++;
-                        break;
-                    case 'O':
-                        totalMatrix[i][1]++;
-                        break;
-                    case 'Y':
-                        totalMatrix[i][2]++;
-                        break;
-                    case 'G':
-                        totalMatrix[i][3]++;
-                        break;
-                    case 'B':
-                        totalMatrix[i][4]++;
-                        break;
-                    case 'W':
-                        totalMatrix[i][5]++;
-                        break;
-                    default:
-                        totalMatrix[i][6]++;
-                        break;
-                }
-            }
-        }
+        for(List<Pair<Point, Character>> lpc : totalDetected)
+            for(int i = 0; i < 9 ; i++)
+                totalMatrix[i][ColourDetector.getColourInt(lpc.get(i).second)]++;
 
         for(int i = 0; i<9 ; i++){
             int maxVal = 0;
@@ -177,29 +199,7 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
                     maxColour = j;
                 }
             }
-            switch(maxColour){
-                case 0:
-                    averagedColours.add('R');
-                    break;
-                case 1:
-                    averagedColours.add('O');
-                    break;
-                case 2:
-                    averagedColours.add('Y');
-                    break;
-                case 3:
-                    averagedColours.add('G');
-                    break;
-                case 4:
-                    averagedColours.add('B');
-                    break;
-                case 5:
-                    averagedColours.add('W');
-                    break;
-                default:
-                    averagedColours.add('X');
-                    break;
-            }
+            averagedColours.add(ColourDetector.getColourChar(maxColour));
         }
         return averagedColours;
     }

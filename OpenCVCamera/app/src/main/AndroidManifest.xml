@@ -35,10 +35,11 @@
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".ImageAnalysis"
-            android:screenOrientation="portrait"
+            android:screenOrientation="landscape"
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".MainDetector"
+            android:screenOrientation="landscape"
             android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 

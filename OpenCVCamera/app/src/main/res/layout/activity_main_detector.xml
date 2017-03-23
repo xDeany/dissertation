@@ -2,31 +2,192 @@
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/MainFrame"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/darker_gray"
     tools:context="andydean.opencvcamera.MainDetector">
 
 
-    <RelativeLayout
-        android:id="@+id/videoLayout"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
 
-        <org.opencv.android.JavaCameraView
-            android:id="@+id/java_camera_view_main"
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <GridLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:columnCount="3"
+                    android:rowCount="3">
+
+                    <View
+                        android:id="@+id/cellb1"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cellb2"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cellb3"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cellb4"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cellb5"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cellb6"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cellb7"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cellb8"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cellb9"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@android:color/black" />
+                </GridLayout>
+
+                <GridLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:columnCount="3"
+                    android:rowCount="3">
+
+                    <View
+                        android:id="@+id/cell1"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="1dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cell2"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="1dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cell3"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="1dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cell4"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="1dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cell5"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="1dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cell6"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="1dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cell7"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="1dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cell8"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="1dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cell9"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="1dp"
+                        android:background="@android:color/black" />
+                </GridLayout>
+            </RelativeLayout>
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/floatingActionButton"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_weight="1"
+                android:clickable="true"
+                app:fabSize="mini"
+                app:srcCompat="@android:drawable/ic_menu_camera"
+                app:useCompatPadding="true" />
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/floatingActionButton2"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_weight="1"
+                android:clickable="true"
+                app:fabSize="mini"
+                app:srcCompat="@android:drawable/checkbox_on_background"
+                app:useCompatPadding="true" />
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/videoLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </RelativeLayout>
+            android:layout_height="match_parent">
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/floatingActionButton"
-        android:layout_width="70dp"
-        android:layout_height="67dp"
-        android:layout_gravity="top|center_horizontal"
-        android:clickable="true"
-        app:fabSize="mini"
-        app:layout_anchorGravity="bottom|center_horizontal"
-        app:srcCompat="@android:drawable/ic_menu_camera" />
+            <org.opencv.android.JavaCameraView
+                android:id="@+id/java_camera_view_main"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </RelativeLayout>
+    </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>
