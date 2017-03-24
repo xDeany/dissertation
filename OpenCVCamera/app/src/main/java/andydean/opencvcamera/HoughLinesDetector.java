@@ -385,13 +385,19 @@ public class HoughLinesDetector extends CubeDetector{
      * The four corners surrounding these lines are found
      * E.g. If the lines given where a cross-hair over the centre of a square, the containing corners
      * would correspond to the corners of the square.
-     * @param v1 **First line**
-     * @param v2 **Second line**
+     * To make sure the points are chosen clockwise, it has to choose v1 to be the most horizontal line
+     * and use the gradient/line rules (around the start and the end points) to make certain of this order
+     * @param vA **First line**
+     * @param vB **Second line**
      * @return allPoints **An arrayList containing the coordinates of the corners around the lines**
      */
-    private ArrayList<Point> findContainingCorners(Line v1, Line v2){
-        if(!Line.areIntersecting(v1, v2))
+    private ArrayList<Point> findContainingCorners(Line vA, Line vB){
+        if(!Line.areIntersecting(vA, vB))
             return null;
+
+        //First line has to be the most horizontal one
+        Line v1 = Math.abs(vA.m) < Math.abs(vB.m) ? vA : vB;
+        Line v2 = v1.equals(vA) ? vB : vA;
 
         //For both start and end points of each line
         //Calc eqn of normal
@@ -403,16 +409,23 @@ public class HoughLinesDetector extends CubeDetector{
 
         //Find where these normal lines intersect i.e. the containing corners
         Point v1Sv2S = Line.findIntersect(v1StartNorm.first, v1StartNorm.second, v1.start, v2StartNorm.first, v2StartNorm.second, v2.start);
-        Point v1Sv2E = Line.findIntersect(v1StartNorm.first, v1StartNorm.second, v1.start, v2EndNorm.first, v2EndNorm.second, v2.end);
         Point v1Ev2S = Line.findIntersect(v1EndNorm.first, v1EndNorm.second, v1.end, v2StartNorm.first, v2StartNorm.second, v2.start);
         Point v1Ev2E = Line.findIntersect(v1EndNorm.first, v1EndNorm.second, v1.end, v2EndNorm.first, v2EndNorm.second, v2.end);
+        Point v1Sv2E = Line.findIntersect(v1StartNorm.first, v1StartNorm.second, v1.start, v2EndNorm.first, v2EndNorm.second, v2.end);
 
         //Group all the corners into a containing array
         ArrayList<Point> allPoints = new ArrayList<>(4);
-        allPoints.add(v1Sv2S);
-        allPoints.add(v1Sv2E);
-        allPoints.add(v1Ev2S);
-        allPoints.add(v1Ev2E);
+        if(v2.m > 0) {
+            allPoints.add(v1Sv2E);
+            allPoints.add(v1Ev2E);
+            allPoints.add(v1Ev2S);
+            allPoints.add(v1Sv2S);
+        }else{
+            allPoints.add(v1Sv2S);
+            allPoints.add(v1Ev2S);
+            allPoints.add(v1Ev2E);
+            allPoints.add(v1Sv2E);
+        }
         return allPoints;
     }
 

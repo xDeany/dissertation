@@ -258,48 +258,54 @@ public class ColourDetector {
     }
 
     /**
-     * From the corners supplied, it finds the ones that are opposite and then uses ther locations
-     * to infer the coordinates of the sticker centres
+     * Assuming the corners are given in a clockwise order, calculate where the stickers should be
      * @param corners ** Corners to be analysed **
      * @return centres ** The locations of the centres of the stickers **
      */
     private static List<Point> getSquareCentres(List<Point> corners) {
-        List<Pair<Point, Point>> diagonals = getDiagonals(corners);
-        Point a = diagonals.get(0).first;
-        Point b = diagonals.get(0).second;
-        Point c = diagonals.get(1).first;
-        Point d = diagonals.get(1).second;
-        //Going a -> b and c -> d
-        Pair<Double, Double> vecA = new Pair<>((b.x - a.x)/6, (b.y - a.y)/6);
-        Pair<Double, Double> vecB = new Pair<>((d.x - c.x)/6, (d.y - c.y)/6);
-        //
-        // p1  p2  p3
-        // p4  p5  p6
-        // p7  p8  p9
-        // a -> b
-        Point p1 = new Point(a.x + vecA.first, a.y + vecA.second);
-        Point p5 = new Point(p1.x + vecA.first + vecA.first, p1.y + vecA.second + vecA.second);
-        Point p9 = new Point(p5.x + vecA.first + vecA.first, p5.y + vecA.second + vecA.second);
+        //a              b
+        //   p1  p2  p3
+        //   p8  p9  p4
+        //d  p7  p6  p5  c
 
-        // c -> d
-        Point p3 = new Point(c.x + vecB.first, c.y + vecB.second);
-        p5 = new Point(p3.x + vecB.first + vecB.first, p3.y + vecB.second + vecB.second);
-        Point p7 = new Point(p5.x + vecB.first + vecB.first, p5.y + vecB.second + vecB.second);
+        Point a = corners.get(0);
+        Point b = corners.get(1);
+        Point c = corners.get(2);
+        Point d = corners.get(3);
+        //Pair<Double, Double> vecA = new Pair<>((c.x - a.x)/6, (c.y - a.y)/6);
+        //Pair<Double, Double> vecB = new Pair<>((d.x - b.x)/6, (d.y - b.y)/6);
+        Line ac = new Line(a, c, 1);
+        Line bd = new Line(b, d, 1);
+        Point p9 = Line.findIntersect(ac.m, ac.c, a, bd.m, bd.c, b);
+        Point p1 = new Point(((p9.x - a.x) / 3) + a.x, ((p9.y - a.y)/3) + a.y);
+        Point p3 = new Point(((p9.x - b.x) / 3) + b.x, ((p9.y - b.y)/3) + b.y);
+        Point p5 = new Point(((p9.x - c.x) / 3) + c.x, ((p9.y - c.y)/3) + c.y);
+        Point p7 = new Point(((p9.x - d.x) / 3) + d.x, ((p9.y - d.y)/3) + d.y);
 
         Point p2 = new Point(((p3.x - p1.x)/2)+p1.x, ((p3.y - p1.y)/2)+p1.y);
-        Point p4 = new Point(((p7.x - p1.x)/2)+p1.x, ((p7.y - p1.y)/2)+p1.y);
-        Point p6 = new Point(((p3.x - p9.x)/2)+p9.x, ((p3.y - p9.y)/2)+p9.y);
-        Point p8 = new Point(((p7.x - p9.x)/2)+p9.x, ((p7.y - p9.y)/2)+p9.y);
+        Point p4 = new Point(((p5.x - p3.x)/2)+p3.x, ((p5.y - p3.y)/2)+p3.y);
+        Point p6 = new Point(((p7.x - p5.x)/2)+p5.x, ((p7.y - p5.y)/2)+p5.y);
+        Point p8 = new Point(((p1.x - p7.x)/2)+p7.x, ((p1.y - p7.y)/2)+p7.y);
+
+        //Point p1 = new Point(a.x + vecA.first, a.y + vecA.second);
+        //Point p5 = new Point(p1.x + vecA.first + vecA.first, p1.y + vecA.second + vecA.second);
+        //Point p9 = new Point(p5.x + vecA.first + vecA.first, p5.y + vecA.second + vecA.second);
+
+        //Point p3 = new Point(b.x + vecB.first, b.y + vecB.second);
+        //p5 = new Point(p3.x + vecB.first + vecB.first, p3.y + vecB.second + vecB.second);
+        //Point p7 = new Point(p5.x + vecB.first + vecB.first, p5.y + vecB.second + vecB.second);
+
+
         List<Point> centres = new ArrayList<>(Arrays.asList(p1,p2,p3,p4,p5,p6,p7,p8,p9));
         return centres;
     }
-
+/*
     /**
      * Takes the corners in any order, and finds the pair of corners that are furthest apart
      * Idea is so that it creates a diagonal over the cube
      * @param corners ** Corners to be analysed **
      * @return bothDiags ** An arraylist containing both pairs of corners **
-     */
+     *
     private static List<Pair<Point,Point>> getDiagonals(List<Point> corners){
         Point a = corners.get(0);
         Point b = corners.get(1);
@@ -334,5 +340,5 @@ public class ColourDetector {
 
         return bothDiags;
     }
-
+*/
 }

@@ -112,21 +112,21 @@
                         android:background="@android:color/black" />
 
                     <View
+                        android:id="@+id/cell8"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="1dp"
+                        android:background="@android:color/black" />
+
+                    <View
+                        android:id="@+id/cell9"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_margin="1dp"
+                        android:background="@android:color/black" />
+
+                    <View
                         android:id="@+id/cell4"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:layout_margin="1dp"
-                        android:background="@android:color/black" />
-
-                    <View
-                        android:id="@+id/cell5"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:layout_margin="1dp"
-                        android:background="@android:color/black" />
-
-                    <View
-                        android:id="@+id/cell6"
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:layout_margin="1dp"
@@ -140,14 +140,14 @@
                         android:background="@android:color/black" />
 
                     <View
-                        android:id="@+id/cell8"
+                        android:id="@+id/cell6"
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:layout_margin="1dp"
                         android:background="@android:color/black" />
 
                     <View
-                        android:id="@+id/cell9"
+                        android:id="@+id/cell5"
                         android:layout_width="28dp"
                         android:layout_height="28dp"
                         android:layout_margin="1dp"

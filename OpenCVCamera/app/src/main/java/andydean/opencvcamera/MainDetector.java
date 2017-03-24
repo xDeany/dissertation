@@ -43,7 +43,6 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
     long time = System.currentTimeMillis();
     List<List<Pair<Point, Character>>> captured;
     List<Character> averaged;
-    List<Pair<Point, Character>> averagedAndLocation;
     List<View> lastSideStored;
 
     BaseLoaderCallback mLoaderCallBack = new BaseLoaderCallback(this) {
@@ -142,11 +141,13 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
         }else {
             if(!captured.isEmpty()){
                 averaged = averageColours(captured);
+                List<Pair<Point,Character>> averagedAndLocation = new ArrayList<>();
                 for(int i = 0; i < 9; i++){
                     Point p = captured.get(captured.size()-1).get(i).first;
-                    captured.get(captured.size()-1).set(i,new Pair<>(p,averaged.get(i)));
+                    Character c = averaged.get(i);
+                    averagedAndLocation.add(new Pair<>(p,c));
                 }
-                cameraFrameStream = HoughLinesDetector.drawPointsColour(captured.get(captured.size()-1), cameraFrameStream);
+                cameraFrameStream = HoughLinesDetector.drawPointsColour(averagedAndLocation, cameraFrameStream);
                 capturedFrame = cameraFrameStream.clone();
                 captured = new ArrayList<>();
                 state = ERROR_CHECK_STATE;
