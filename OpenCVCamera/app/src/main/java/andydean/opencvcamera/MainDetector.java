@@ -3,11 +3,13 @@ package andydean.opencvcamera;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.media.Image;
+import android.media.tv.TvContract;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.Pair;
+import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.ImageView;
@@ -23,6 +25,8 @@ import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,13 +41,14 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
 
     private String state = VIDEO_STATE;
     JavaCameraView javaCameraView;
-    Mat cameraFrameStream, capturedFrame;
+    Mat capturedFrame, drawnFrame, capturedFrameWithPixels;
     FloatingActionButton captureCubeButton, validDetectionButton;
     CubeDetector houghDetector;
     long time = System.currentTimeMillis();
     List<List<Pair<Point, Character>>> captured;
-    List<Character> averaged;
+    List<Pair<Point,Character>> averagedAndLocation;
     List<View> lastSideStored;
+    boolean colourChanged = false;
 
     BaseLoaderCallback mLoaderCallBack = new BaseLoaderCallback(this) {
         @Override
@@ -101,9 +106,11 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
             @Override
             public void onClick(View v) {
                 if(state.equals(ERROR_CHECK_STATE)) {
+                    capturedFrame.release();
+                    capturedFrameWithPixels.release();
                     state = VIDEO_STATE;
                     for(int i = 0; i < 9 ; i++){
-                        Character c = averaged.get(i);
+                        Character c = averagedAndLocation.get(i).second;
                         View iv = lastSideStored.get(i);
                         double[] rgbVals = ColourDetector.getRGB(c);
                         iv.setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
@@ -111,11 +118,46 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
                 }
             }
         });
+
+        javaCameraView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                colourChanged = true;
+                if(state.equals(ERROR_CHECK_STATE)){
+                    RelativeLayout videoFrame = (RelativeLayout) findViewById(R.id.videoLayout);
+                    int[] windowLocation = new int[2];
+                    javaCameraView.getLocationOnScreen(windowLocation);
+                    int eX = (int) event.getX();
+                    int eY = (int) event.getY();
+                    int x = eX - 150;
+                    int y = eY - 100;
+                    Point touchLocation = new Point(x,y);
+                    double minDist = Double.POSITIVE_INFINITY;
+                    int pairNum = -1;
+                    for(int i = 0; i < 9; i++){
+                        Pair<Point, Character> pc = averagedAndLocation.get(i);
+                        double dist = Line.calcDistBetween(pc.first, touchLocation);
+                        if(dist < minDist){
+                            minDist = dist;
+                            pairNum = i;
+                        }
+                    }
+                    Pair<Point, Character> pc = averagedAndLocation.get(pairNum);
+                    int i = ColourDetector.getColourInt(pc.second);
+                    i = (i+1)%6;
+                    Character newC = ColourDetector.getColourChar(i);
+                    Pair<Point, Character> newPC = new Pair<>(pc.first, newC);
+                    averagedAndLocation.set(pairNum, newPC);
+
+                }
+                return false;
+            }
+        });
     }
 
     @Override
     public void onCameraViewStarted(int width, int height) {
-        cameraFrameStream = new Mat(height, width, CvType.CV_8SC4);
+        drawnFrame = new Mat(height, width, CvType.CV_8SC4);
     }
 
     @Override
@@ -125,44 +167,56 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        cameraFrameStream = inputFrame.rgba();
+        drawnFrame = inputFrame.rgba();
 
         if(state.equals(CAPTURE_STATE) && System.currentTimeMillis() < time + 3000) {
-            List<Point> corners = houghDetector.detectCubeLocation(cameraFrameStream);
+            List<Point> corners = houghDetector.detectCubeLocation(drawnFrame);
             List<Pair<Point, Character>> colours;
             if (!corners.isEmpty()) {
-                colours = houghDetector.detectCubeColour(cameraFrameStream, corners);
+                colours = houghDetector.detectCubeColour(drawnFrame, corners);
 
                 if (colours != null) {
-                    cameraFrameStream = HoughLinesDetector.drawPointsColour(colours, cameraFrameStream);
+                    for(Pair<Point, Character> p : colours) {
+                        double[] rgbVals = ColourDetector.getRGB(p.second);
+                        Imgproc.circle(drawnFrame, p.first, 8, new Scalar(rgbVals[0], rgbVals[1], rgbVals[2], 255), 40);
+                    }
                     captured.add(colours);
                 }
             }
         }else {
             if(!captured.isEmpty()){
-                averaged = averageColours(captured);
-                List<Pair<Point,Character>> averagedAndLocation = new ArrayList<>();
+
+                capturedFrame = drawnFrame.clone();
+                capturedFrameWithPixels = drawnFrame.clone();
+
+                List<Character> averaged = averageColours(captured);
+                averagedAndLocation = new ArrayList<>();
                 for(int i = 0; i < 9; i++){
                     Point p = captured.get(captured.size()-1).get(i).first;
                     Character c = averaged.get(i);
                     averagedAndLocation.add(new Pair<>(p,c));
                 }
-                cameraFrameStream = HoughLinesDetector.drawPointsColour(averagedAndLocation, cameraFrameStream);
-                capturedFrame = cameraFrameStream.clone();
                 captured = new ArrayList<>();
                 state = ERROR_CHECK_STATE;
+                colourChanged = true;
             }
         }
-        if(state.equals(ERROR_CHECK_STATE))
-            return capturedFrame;
-        else
-            return cameraFrameStream;
+
+        if(colourChanged) {
+            capturedFrameWithPixels.release();
+            capturedFrameWithPixels = HoughLinesDetector.drawPointsColour(averagedAndLocation, capturedFrame);
+            colourChanged = false;
+            return capturedFrameWithPixels;
+        }else if(state.equals(ERROR_CHECK_STATE))
+            return capturedFrameWithPixels;
+
+        return drawnFrame;
     }
 
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        cameraFrameStream.release();
+        drawnFrame.release();
         if(javaCameraView!=null)
             javaCameraView.disableView();
     }

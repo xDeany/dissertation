@@ -415,17 +415,19 @@ public class HoughLinesDetector extends CubeDetector{
 
         //Group all the corners into a containing array
         ArrayList<Point> allPoints = new ArrayList<>(4);
-        if(v2.m > 0) {
-            allPoints.add(v1Sv2E);
-            allPoints.add(v1Ev2E);
-            allPoints.add(v1Ev2S);
+
+        if(v2.start.y < v2.end.y){
             allPoints.add(v1Sv2S);
+            allPoints.add(v1Ev2S);
+            allPoints.add(v1Ev2E);
+            allPoints.add(v1Sv2E);
         }else{
-            allPoints.add(v1Sv2S);
-            allPoints.add(v1Ev2S);
-            allPoints.add(v1Ev2E);
             allPoints.add(v1Sv2E);
+            allPoints.add(v1Ev2E);
+            allPoints.add(v1Ev2S);
+            allPoints.add(v1Sv2S);
         }
+
         return allPoints;
     }
 

@@ -54,7 +54,7 @@ public class Line {
 
     public void setStartAndEnd(Point p1, Point p2){
         if(p1.x == p2.x){
-            //If the line is vertical then the start point is the lowest y
+            //If the line is vertical then the start point is the smallest y
             double y1 = Math.min(p1.y, p2.y);
             start = p1.x == y1 ? p1 : p2;
             end = p1.x == y1 ? p2 : p1;
