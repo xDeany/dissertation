@@ -47,6 +47,12 @@ public class ColourDetector {
         return colours;
     }
 
+    public static char nextColour(char c){
+        int i = getColourInt(c);
+        i = (i+1)%6;
+        return getColourChar(i);
+    }
+
     /**
      * Helper function for translating the sticker colours from char to int
      * @param c ** Character value of colour **

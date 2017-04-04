@@ -1,9 +1,6 @@
 package andydean.opencvcamera;
 
-import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.media.Image;
-import android.media.tv.TvContract;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -12,43 +9,59 @@ import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class MainDetector extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2{
 
     private static String TAG = "MainDetector";
 
+    //Constantly stream the camera frames to the screen
     private static final String VIDEO_STATE = "video_state";
+
+    //Attempting to detect cube location and colour
     private static final String CAPTURE_STATE = "capture_state";
+
+    //Cube detected, user can correct errors before saving
     private static final String ERROR_CHECK_STATE = "error_check_state";
 
     private String state = VIDEO_STATE;
+    //Main image view
     JavaCameraView javaCameraView;
+    //Frames used for still images
     Mat capturedFrame, drawnFrame, capturedFrameWithPixels;
-    FloatingActionButton captureCubeButton, validDetectionButton;
+    FloatingActionButton startCaptureButton, saveFaceButton, rejectFaceButton, connetFacesButton;
     CubeDetector houghDetector;
     long time = System.currentTimeMillis();
+    //The frames captured during capture_state
     List<List<Pair<Point, Character>>> captured;
-    List<Pair<Point,Character>> averagedAndLocation;
-    List<View> lastSideStored;
-    boolean colourChanged = false;
+    //The colours displayed on the screen during error_check_state
+    List<Pair<Point,Character>> onScreenColours;
+    //Boolean to register when the user has changed a displayed colour
+    boolean onScreenColourChange = false;
+    //List view of the face of the cube in the upper left corner
+    List<Character>  toSave;
+    //The views to store - current face being edited and the collection of faces seen so far
+    List<View> sideEditor, selectFace;
+    //List of the sides left to see
+    List<Character> unseenCentres = new ArrayList<>();
+    //Map storing the faces seen so far, with
+    AbstractMap<Character, List<Character>> seenFaces;
+    List<List<Character>> seenFacesList;
 
     BaseLoaderCallback mLoaderCallBack = new BaseLoaderCallback(this) {
         @Override
@@ -69,8 +82,11 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_detector);
-        captureCubeButton = (FloatingActionButton) findViewById(R.id.floatingActionButton);
-        validDetectionButton = (FloatingActionButton) findViewById(R.id.floatingActionButton2);
+        startCaptureButton = (FloatingActionButton) findViewById(R.id.floatingActionButton);
+        saveFaceButton = (FloatingActionButton) findViewById(R.id.tickButton);
+        rejectFaceButton = (FloatingActionButton) findViewById(R.id.crossButton);
+        connetFacesButton = (FloatingActionButton) findViewById(R.id.create_net_button);
+        connetFacesButton.setVisibility(View.GONE);
 
         javaCameraView = (JavaCameraView) findViewById(R.id.java_camera_view_main);
         javaCameraView.setVisibility(SurfaceView.VISIBLE);
@@ -81,40 +97,114 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
 
         captured = new ArrayList<>();
 
-        lastSideStored = new ArrayList<>();
-        lastSideStored.add(0,(View) findViewById(R.id.cell1));
-        lastSideStored.add(1,(View) findViewById(R.id.cell2));
-        lastSideStored.add(2,(View) findViewById(R.id.cell3));
-        lastSideStored.add(3,(View) findViewById(R.id.cell4));
-        lastSideStored.add(4,(View) findViewById(R.id.cell5));
-        lastSideStored.add(5,(View) findViewById(R.id.cell6));
-        lastSideStored.add(6,(View) findViewById(R.id.cell7));
-        lastSideStored.add(7,(View) findViewById(R.id.cell8));
-        lastSideStored.add(8,(View) findViewById(R.id.cell9));
+        sideEditor = new ArrayList<>();
+        sideEditor.add(0, findViewById(R.id.cell1));
+        sideEditor.add(1, findViewById(R.id.cell2));
+        sideEditor.add(2, findViewById(R.id.cell3));
+        sideEditor.add(3, findViewById(R.id.cell4));
+        sideEditor.add(4, findViewById(R.id.cell5));
+        sideEditor.add(5, findViewById(R.id.cell6));
+        sideEditor.add(6, findViewById(R.id.cell7));
+        sideEditor.add(7, findViewById(R.id.cell8));
+        sideEditor.add(8, findViewById(R.id.cell9));
 
-        captureCubeButton.setOnClickListener(new View.OnClickListener() {
+        selectFace = new ArrayList<>(6);
+        selectFace.add(0, findViewById(R.id.faceR));
+        selectFace.add(1, findViewById(R.id.faceO));
+        selectFace.add(2, findViewById(R.id.faceY));
+        selectFace.add(3, findViewById(R.id.faceG));
+        selectFace.add(4, findViewById(R.id.faceB));
+        selectFace.add(5, findViewById(R.id.faceW));
+
+        unseenCentres.add('R');
+        unseenCentres.add('O');
+        unseenCentres.add('Y');
+        unseenCentres.add('G');
+        unseenCentres.add('B');
+        unseenCentres.add('W');
+
+        toSave = new ArrayList<>(9);
+        for(int i = 0 ; i<9; i++)
+            toSave.add(i, 'X');
+
+        seenFacesList = new ArrayList<>(6);
+        ArrayList<Character> black = new ArrayList<>(6);
+        for(int i = 0; i < 9; i++)
+            black.add('X');
+
+        for(int i = 0; i < 6; i++)
+            seenFacesList.add(black);
+
+        for(int i = 0; i < 6; i++){
+            final View faceStorage = selectFace.get(i);
+            final int j = i;
+            faceStorage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                toSave.clear();
+                for(char c : seenFacesList.get(j))
+                    toSave.add(c);
+                updateCornerFace(toSave);
+                }
+            });
+        }
+
+        for(int i = 0; i < 9; i++){
+            final View cubeSquare = sideEditor.get(i);
+            final int j = i;
+            cubeSquare.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                char currentColour = toSave.get(j);
+                char newColour = ColourDetector.nextColour(currentColour);
+                toSave.set(j, newColour);
+                double[] rgbVals = ColourDetector.getRGB(newColour);
+                cubeSquare.setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
+                }
+            });
+        }
+
+        startCaptureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!state.equals(ERROR_CHECK_STATE)){
+                if(state.equals(VIDEO_STATE)){
                     state = CAPTURE_STATE;
                     time = System.currentTimeMillis();
                 }
             }
         });
 
-        validDetectionButton.setOnClickListener(new View.OnClickListener() {
+        saveFaceButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //Save the face in the corner
+                if(state.equals(VIDEO_STATE))
+                    storeFace(toSave);
+
                 if(state.equals(ERROR_CHECK_STATE)) {
+                    //Reset state of stored frames
                     capturedFrame.release();
                     capturedFrameWithPixels.release();
                     state = VIDEO_STATE;
-                    for(int i = 0; i < 9 ; i++){
-                        Character c = averagedAndLocation.get(i).second;
-                        View iv = lastSideStored.get(i);
-                        double[] rgbVals = ColourDetector.getRGB(c);
-                        iv.setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
-                    }
+                    //Update cube in the corner to the one on frame
+                    updateCornerFace(toSave);
+                    storeFace(toSave);
+                    //If all sides have been added, allow the user to go to the next step
+                    if(unseenCentres.size() == 0)
+                        connetFacesButton.setVisibility(View.VISIBLE);
+
+                }
+            }
+        });
+
+        rejectFaceButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(state.equals(ERROR_CHECK_STATE)) {
+                    //Reset state of stored frames
+                    capturedFrame.release();
+                    capturedFrameWithPixels.release();
+                    state = VIDEO_STATE;
                 }
             }
         });
@@ -122,37 +212,73 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
         javaCameraView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                colourChanged = true;
+                onScreenColourChange = true;
                 if(state.equals(ERROR_CHECK_STATE)){
-                    RelativeLayout videoFrame = (RelativeLayout) findViewById(R.id.videoLayout);
-                    int[] windowLocation = new int[2];
-                    javaCameraView.getLocationOnScreen(windowLocation);
+                    //Find touch location and adjust for frame location
                     int eX = (int) event.getX();
                     int eY = (int) event.getY();
                     int x = eX - 150;
                     int y = eY - 100;
                     Point touchLocation = new Point(x,y);
-                    double minDist = Double.POSITIVE_INFINITY;
-                    int pairNum = -1;
-                    for(int i = 0; i < 9; i++){
-                        Pair<Point, Character> pc = averagedAndLocation.get(i);
-                        double dist = Line.calcDistBetween(pc.first, touchLocation);
-                        if(dist < minDist){
-                            minDist = dist;
-                            pairNum = i;
-                        }
-                    }
-                    Pair<Point, Character> pc = averagedAndLocation.get(pairNum);
-                    int i = ColourDetector.getColourInt(pc.second);
-                    i = (i+1)%6;
-                    Character newC = ColourDetector.getColourChar(i);
-                    Pair<Point, Character> newPC = new Pair<>(pc.first, newC);
-                    averagedAndLocation.set(pairNum, newPC);
-
+                    //Find the index of the nearest point;
+                    int pairNum = getNearestPoint(onScreenColours, touchLocation);
+                    //Increment through the list of colours
+                    char newC = ColourDetector.nextColour(onScreenColours.get(pairNum).second);
+                    Pair<Point, Character> newPC = new Pair<>(onScreenColours.get(pairNum).first, newC);
+                    toSave.set(pairNum, newC);
+                    onScreenColours.set(pairNum, newPC);
                 }
                 return false;
             }
         });
+
+        connetFacesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                
+            }
+        });
+    }
+
+    private boolean storeFace(List<Character> toSave){
+        if(toSave.contains('X'))
+            return false;
+        Character centre = toSave.get(8);
+        int faceIndex = ColourDetector.getColourInt(centre);
+        //Update unseenCentres list and centres in bottom left
+        if(unseenCentres.contains(centre))
+            unseenCentres.remove(centre);
+
+        //Copy over toSave, don't store reference to object
+        seenFacesList.set(faceIndex, new ArrayList<>(toSave));
+
+        double[] rgbVals = ColourDetector.getRGB(centre);
+        selectFace.get(faceIndex).setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
+        return true;
+    }
+
+    private int getNearestPoint(List<Pair<Point, Character>> points, Point touchLocation){
+        double minDist = Double.POSITIVE_INFINITY;
+        int pairNum = -1;
+        for(int i = 0; i < 9; i++){
+            Pair<Point, Character> pc = points.get(i);
+            double dist = Line.calcDistBetween(pc.first, touchLocation);
+            if(dist < minDist){
+                minDist = dist;
+                pairNum = i;
+            }
+        }
+        return pairNum;
+    }
+
+
+    private void updateCornerFace(List<Character> face){
+        for(int i = 0; i < 9 ; i++){
+            Character c = face.get(i);
+            View iv = sideEditor.get(i);
+            double[] rgbVals = ColourDetector.getRGB(c);
+            iv.setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
+        }
     }
 
     @Override
@@ -190,22 +316,23 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
                 capturedFrameWithPixels = drawnFrame.clone();
 
                 List<Character> averaged = averageColours(captured);
-                averagedAndLocation = new ArrayList<>();
+                toSave = averaged;
+                onScreenColours = new ArrayList<>();
                 for(int i = 0; i < 9; i++){
                     Point p = captured.get(captured.size()-1).get(i).first;
                     Character c = averaged.get(i);
-                    averagedAndLocation.add(new Pair<>(p,c));
+                    onScreenColours.add(new Pair<>(p,c));
                 }
                 captured = new ArrayList<>();
                 state = ERROR_CHECK_STATE;
-                colourChanged = true;
+                onScreenColourChange = true;
             }
         }
 
-        if(colourChanged) {
+        if(onScreenColourChange) {
             capturedFrameWithPixels.release();
-            capturedFrameWithPixels = HoughLinesDetector.drawPointsColour(averagedAndLocation, capturedFrame);
-            colourChanged = false;
+            capturedFrameWithPixels = HoughLinesDetector.drawPointsColour(onScreenColours, capturedFrame);
+            onScreenColourChange = false;
             return capturedFrameWithPixels;
         }else if(state.equals(ERROR_CHECK_STATE))
             return capturedFrameWithPixels;
