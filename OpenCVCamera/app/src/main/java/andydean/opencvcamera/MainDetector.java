@@ -1,5 +1,6 @@
 package andydean.opencvcamera;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -59,9 +60,9 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
     List<View> sideEditor, selectFace;
     //List of the sides left to see
     List<Character> unseenCentres = new ArrayList<>();
+    ArrayList<Character> black = new ArrayList<>(9);
     //Map storing the faces seen so far, with
-    AbstractMap<Character, List<Character>> seenFaces;
-    List<List<Character>> seenFacesList;
+    ArrayList<ArrayList<Character>> seenFacesList;
 
     BaseLoaderCallback mLoaderCallBack = new BaseLoaderCallback(this) {
         @Override
@@ -124,13 +125,13 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
         unseenCentres.add('W');
 
         toSave = new ArrayList<>(9);
-        for(int i = 0 ; i<9; i++)
-            toSave.add(i, 'X');
+        for (int i = 0; i < 9; i++){
+            black.add('X');
+            toSave.add('X');
+        }
 
         seenFacesList = new ArrayList<>(6);
-        ArrayList<Character> black = new ArrayList<>(6);
-        for(int i = 0; i < 9; i++)
-            black.add('X');
+
 
         for(int i = 0; i < 6; i++)
             seenFacesList.add(black);
@@ -177,10 +178,6 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
         saveFaceButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Save the face in the corner
-                if(state.equals(VIDEO_STATE))
-                    storeFace(toSave);
-
                 if(state.equals(ERROR_CHECK_STATE)) {
                     //Reset state of stored frames
                     capturedFrame.release();
@@ -188,12 +185,12 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
                     state = VIDEO_STATE;
                     //Update cube in the corner to the one on frame
                     updateCornerFace(toSave);
-                    storeFace(toSave);
-                    //If all sides have been added, allow the user to go to the next step
-                    if(unseenCentres.size() == 0)
-                        connetFacesButton.setVisibility(View.VISIBLE);
-
                 }
+
+                storeFace(toSave);
+                //If all sides have been added, allow the user to go to the next step
+                if(unseenCentres.isEmpty())
+                    connetFacesButton.setVisibility(View.VISIBLE);
             }
         });
 
@@ -206,14 +203,19 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
                     capturedFrameWithPixels.release();
                     state = VIDEO_STATE;
                 }
+                updateCornerFace(black);
+                toSave.clear();
+                for(int i = 0; i<9; i++)
+                    toSave.add('X');
             }
         });
 
         javaCameraView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                onScreenColourChange = true;
+
                 if(state.equals(ERROR_CHECK_STATE)){
+                    onScreenColourChange = true;
                     //Find touch location and adjust for frame location
                     int eX = (int) event.getX();
                     int eY = (int) event.getY();
@@ -235,7 +237,12 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
         connetFacesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                
+                for(List<Character> lc : seenFacesList)
+                    lc.remove(8);
+
+                Intent i = new Intent(MainDetector.this, CubeNetBuilder.class);
+                i.putExtra("faces", seenFacesList);
+                startActivity(i);
             }
         });
     }

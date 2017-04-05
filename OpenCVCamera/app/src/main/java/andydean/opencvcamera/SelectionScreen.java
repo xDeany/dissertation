@@ -19,6 +19,7 @@ import org.opencv.imgcodecs.Imgcodecs;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SelectionScreen extends AppCompatActivity {
@@ -47,6 +48,7 @@ public class SelectionScreen extends AppCompatActivity {
         Button houghLinesImage = (Button) findViewById(R.id.hough_lines_image_button);
         Button testLocationDetector = (Button) findViewById(R.id.test_location_detector);
         Button mainDetector = (Button) findViewById(R.id.main_detector_button);
+        Button cubeBuilder = (Button) findViewById(R.id.test_cube_builder_button);
 
 
         testLocationDetector.setOnClickListener(new View.OnClickListener(){
@@ -102,6 +104,91 @@ public class SelectionScreen extends AppCompatActivity {
             public void onClick(View v)
             {
                 Intent i = new Intent(SelectionScreen.this, ImageAnalysis.class);
+                startActivity(i);
+            }
+        });
+
+        cubeBuilder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ArrayList<ArrayList<Character>> cube = new ArrayList<>();
+                /*
+                for(int i=0; i<6; i++){
+                    ArrayList<Character> lc = new ArrayList<>();
+                    Character c = ColourDetector.getColourChar(i);
+                    for(int j=0; j<8; j++)
+                        lc.add(c);
+                    cube.add(lc);
+                }*/
+                ArrayList<Character> r = new ArrayList<Character>(8);
+                r.add('B');
+                r.add('B');
+                r.add('G');
+                r.add('Y');
+                r.add('O');
+                r.add('R');
+                r.add('Y');
+                r.add('Y');
+
+                ArrayList<Character> o = new ArrayList<Character>(8);
+                o.add('B');
+                o.add('O');
+                o.add('G');
+                o.add('G');
+                o.add('G');
+                o.add('W');
+                o.add('W');
+                o.add('W');
+
+                ArrayList<Character> y = new ArrayList<Character>(8);
+                y.add('R');
+                y.add('G');
+                y.add('W');
+                y.add('O');
+                y.add('O');
+                y.add('O');
+                y.add('O');
+                y.add('Y');
+
+                ArrayList<Character> g = new ArrayList<Character>(8);
+                g.add('W');
+                g.add('W');
+                g.add('R');
+                g.add('G');
+                g.add('G');
+                g.add('G');
+                g.add('Y');
+                g.add('R');
+
+                ArrayList<Character> b = new ArrayList<Character>(8);
+                b.add('Y');
+                b.add('O');
+                b.add('W');
+                b.add('B');
+                b.add('B');
+                b.add('B');
+                b.add('Y');
+                b.add('Y');
+
+                ArrayList<Character> w = new ArrayList<Character>(8);
+                w.add('R');
+                w.add('W');
+                w.add('B');
+                w.add('R');
+                w.add('R');
+                w.add('B');
+                w.add('O');
+                w.add('R');
+
+                cube.add(r);
+                cube.add(o);
+                cube.add(y);
+                cube.add(g);
+                cube.add(b);
+                cube.add(w);
+
+                Intent i = new Intent(SelectionScreen.this, CubeNetBuilder.class);
+                i.putExtra("faces", cube);
                 startActivity(i);
             }
         });

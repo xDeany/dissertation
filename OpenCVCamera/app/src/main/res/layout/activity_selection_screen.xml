@@ -15,28 +15,27 @@
         android:id="@+id/hough_lines_real_time_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:text="Hough Lines Real Time"
         android:layout_below="@+id/main_detector_button"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="32dp"
-        android:text="Hough Lines Real Time" />
+        android:layout_centerHorizontal="true" />
 
     <Button
         android:id="@+id/hough_lines_image_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/hough_lines_real_time_button"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="44dp"
-        android:text="Hough Lines Image" />
+        android:text="Hough Lines Image"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
 
     <Button
         android:id="@+id/test_location_detector"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:text="Test Location Detector"
         android:layout_below="@+id/hough_lines_image_button"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="45dp"
-        android:text="Test Location Detector" />
+        android:layout_centerHorizontal="true" />
 
     <Button
         android:id="@+id/main_detector_button"
@@ -45,4 +44,12 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:text="Main Detector" />
+
+    <Button
+        android:id="@+id/test_cube_builder_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="Test Cube Builder" />
 </RelativeLayout>

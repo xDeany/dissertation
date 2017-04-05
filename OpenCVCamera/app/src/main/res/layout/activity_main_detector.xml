@@ -261,13 +261,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <org.opencv.android.JavaCameraView
-                android:id="@+id/java_camera_view_main"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentStart="true" />
-
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/create_net_button"
                 android:layout_width="60dp"
@@ -278,6 +271,13 @@
                 android:visibility="visible"
                 app:fabSize="mini"
                 app:srcCompat="@android:drawable/ic_media_play" />
+
+            <org.opencv.android.JavaCameraView
+                android:id="@+id/java_camera_view_main"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true" />
 
         </RelativeLayout>
     </LinearLayout>
