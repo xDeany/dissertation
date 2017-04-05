@@ -28,8 +28,23 @@ public class CubePiece {
     public boolean equals(CubePiece b){
         List<Character> bS = b.getStickers();
         boolean match = true;
-        for(char c : bS)
-            match = match && stickers.contains(c);
+        ArrayList<Character> temp = new ArrayList<>();
+        temp.addAll(stickers);
+        for(char c : bS) {
+            if(temp.contains(c)) {
+                int i = temp.indexOf(c);
+                temp.remove(i);
+            }
+            else
+                match = false;
+        }
         return match;
+    }
+
+    public boolean hasDuplicate(){
+        if(stickers.size() == 3)
+            return stickers.get(0) == stickers.get(1) || stickers.get(0) == stickers.get(2) || stickers.get(1) == stickers.get(2);
+        else
+            return stickers.get(0) == stickers.get(1);
     }
 }

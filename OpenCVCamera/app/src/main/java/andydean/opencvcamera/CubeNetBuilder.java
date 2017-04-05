@@ -1,6 +1,7 @@
 package andydean.opencvcamera;
 
 import android.graphics.Color;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Pair;
@@ -59,7 +60,7 @@ public class CubeNetBuilder extends AppCompatActivity {
         connectScreenCube();
         resetOnScreenCubeColours();
         updateColours(faces);
-        boolean valid = cubeFit(faces, 5);
+        /*boolean valid = cubeFit(faces, 5);
         double[] rgbVals = ColourDetector.getRGB('Y');
         findViewById(R.id.valid).setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
 
@@ -69,13 +70,13 @@ public class CubeNetBuilder extends AppCompatActivity {
             rgbVals = ColourDetector.getRGB('R');
 
         findViewById(R.id.valid).setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
-
+*/
         Button startFit = (Button) findViewById(R.id.start_cube_fit);
 
         startFit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean valid = cubeFit(faces, 5);
+                boolean valid = cubeFit(faces, 0);
                 double[] rgbVals = ColourDetector.getRGB('Y');
                 findViewById(R.id.valid).setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
 
@@ -85,6 +86,7 @@ public class CubeNetBuilder extends AppCompatActivity {
                     rgbVals = ColourDetector.getRGB('R');
 
                 findViewById(R.id.valid).setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
+                updateColours(faces);
             }
         });
 
@@ -93,12 +95,14 @@ public class CubeNetBuilder extends AppCompatActivity {
 
     private boolean cubeFit(ArrayList<ArrayList<Character>> faces, int level) {
         for (int rotations = 0; rotations < 4; rotations++) {
-            updateColours(faces);
+            //updateColours(faces);
             if (isValid(faces))
                 return true;
             Collections.rotate(faces.get(level), 2);
+            if(level < 5 && cubeFit(faces, level + 1))
+                return true;
         }
-        return level != 0 && cubeFit(faces, level - 1);
+        return false;
     }
 
     private boolean isValid(ArrayList<ArrayList<Character>> net){
@@ -148,7 +152,7 @@ public class CubeNetBuilder extends AppCompatActivity {
                 int sze = piecesLeft.size();
                 while (plItr.hasNext() && piecesLeft.size() == sze) {
                     CubePiece pl = plItr.next();
-                    if (pl.equals(c))
+                    if(!c.hasDuplicate() && pl.equals(c))
                         piecesLeft.remove(pl);
                 }
             }else{

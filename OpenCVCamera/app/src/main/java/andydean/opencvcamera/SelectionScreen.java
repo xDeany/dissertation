@@ -121,14 +121,14 @@ public class SelectionScreen extends AppCompatActivity {
                     cube.add(lc);
                 }*/
                 ArrayList<Character> r = new ArrayList<Character>(8);
-                r.add('B');
-                r.add('B');
                 r.add('G');
                 r.add('Y');
                 r.add('O');
                 r.add('R');
                 r.add('Y');
                 r.add('Y');
+                r.add('B');
+                r.add('B');
 
                 ArrayList<Character> o = new ArrayList<Character>(8);
                 o.add('B');
