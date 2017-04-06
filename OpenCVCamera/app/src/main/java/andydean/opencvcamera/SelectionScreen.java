@@ -120,15 +120,15 @@ public class SelectionScreen extends AppCompatActivity {
                         lc.add(c);
                     cube.add(lc);
                 }*/
-                ArrayList<Character> r = new ArrayList<Character>(8);
+                /*ArrayList<Character> r = new ArrayList<Character>(8);
+                r.add('B');
+                r.add('B');
                 r.add('G');
                 r.add('Y');
                 r.add('O');
                 r.add('R');
                 r.add('Y');
                 r.add('Y');
-                r.add('B');
-                r.add('B');
 
                 ArrayList<Character> o = new ArrayList<Character>(8);
                 o.add('B');
@@ -179,6 +179,129 @@ public class SelectionScreen extends AppCompatActivity {
                 w.add('B');
                 w.add('O');
                 w.add('R');
+
+
+
+                ArrayList<Character> r = new ArrayList<Character>(8);
+                r.add('B');
+                r.add('R');
+                r.add('R');
+                r.add('G');
+                r.add('Y');
+                r.add('B');
+                r.add('W');
+                r.add('B');
+
+                ArrayList<Character> o = new ArrayList<Character>(8);
+                o.add('O');
+                o.add('W');
+                o.add('B');
+                o.add('G');
+                o.add('B');
+                o.add('Y');
+                o.add('R');
+                o.add('O');
+
+                ArrayList<Character> y = new ArrayList<Character>(8);
+                y.add('R');
+                y.add('Y');
+                y.add('W');
+                y.add('O');
+                y.add('Y');
+                y.add('R');
+                y.add('G');
+                y.add('W');
+
+                ArrayList<Character> g = new ArrayList<Character>(8);
+                g.add('W');
+                g.add('B');
+                g.add('G');
+                g.add('Y');
+                g.add('G');
+                g.add('G');
+                g.add('B');
+                g.add('W');
+
+                ArrayList<Character> b = new ArrayList<Character>(8);
+                b.add('O');
+                b.add('G');
+                b.add('Y');
+                b.add('O');
+                b.add('O');
+                b.add('B');
+                b.add('R');
+                b.add('O');
+
+                ArrayList<Character> w = new ArrayList<Character>(8);
+                w.add('G');
+                w.add('Y');
+                w.add('O');
+                w.add('R');
+                w.add('Y');
+                w.add('R');
+                w.add('W');
+                w.add('W');
+                */
+
+                ArrayList<Character> r = new ArrayList<Character>(8);
+                r.add('B');
+                r.add('W');
+                r.add('Y');
+                r.add('G');
+                r.add('W');
+                r.add('Y');
+                r.add('R');
+                r.add('G');
+
+                ArrayList<Character> o = new ArrayList<Character>(8);
+                o.add('O');
+                o.add('R');
+                o.add('W');
+                o.add('O');
+                o.add('B');
+                o.add('Y');
+                o.add('R');
+                o.add('O');
+
+                ArrayList<Character> y = new ArrayList<Character>(8);
+                y.add('G');
+                y.add('Y');
+                y.add('Y');
+                y.add('G');
+                y.add('G');
+                y.add('B');
+                y.add('G');
+                y.add('R');
+
+                ArrayList<Character> g = new ArrayList<Character>(8);
+                g.add('O');
+                g.add('R');
+                g.add('Y');
+                g.add('O');
+                g.add('R');
+                g.add('G');
+                g.add('G');
+                g.add('R');
+
+                ArrayList<Character> b = new ArrayList<Character>(8);
+                b.add('O');
+                b.add('O');
+                b.add('O');
+                b.add('B');
+                b.add('B');
+                b.add('W');
+                b.add('B');
+                b.add('B');
+
+                ArrayList<Character> w = new ArrayList<Character>(8);
+                w.add('Y');
+                w.add('B');
+                w.add('R');
+                w.add('W');
+                w.add('W');
+                w.add('Y');
+                w.add('W');
+                w.add('W');
 
                 cube.add(r);
                 cube.add(o);

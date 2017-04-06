@@ -10,6 +10,7 @@ import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -237,14 +238,64 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
         connetFacesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                for(List<Character> lc : seenFacesList)
-                    lc.remove(8);
+                ArrayList<ArrayList<Character>> net = new ArrayList<>();
+                for(List<Character> lc : seenFacesList) {
+                    ArrayList<Character> nc = new ArrayList<>();
+                    for (int i = 0; i < 8; i++) {
+                        nc.add(lc.get(i));
+                    }
+                    net.add(nc);
+                }
 
-                Intent i = new Intent(MainDetector.this, CubeNetBuilder.class);
-                i.putExtra("faces", seenFacesList);
-                startActivity(i);
+                if(checkStickerNum(net)) {
+                    Intent i = new Intent(MainDetector.this, CubeNetBuilder.class);
+                    i.putExtra("faces", net);
+                    startActivity(i);
+                }else{
+                    Toast.makeText(getBaseContext(), "Invalid number of stickers, check your faces" , Toast.LENGTH_SHORT ).show();
+                }
             }
         });
+    }
+
+    private boolean checkStickerNum(ArrayList<ArrayList<Character>> net){
+        int red = 0;
+        int orange = 0;
+        int yellow = 0;
+        int green = 0;
+        int blue = 0;
+        int white = 0;
+        int black = 0;
+        //Simple check to count the number of times each sticker colour appears
+        for(ArrayList<Character> lc : net) {
+            for (Character c : lc) {
+                switch (c) {
+                    case 'R':
+                        red++;
+                        break;
+                    case 'O':
+                        orange++;
+                        break;
+                    case 'Y':
+                        yellow++;
+                        break;
+                    case 'G':
+                        green++;
+                        break;
+                    case 'B':
+                        blue++;
+                        break;
+                    case 'W':
+                        white++;
+                        break;
+                    default:
+                        black++;
+                        break;
+                }
+            }
+        }
+
+        return !(black > 0 || red != 8 || orange != 8 || yellow != 8 || green != 8 || blue != 8 || white != 8);
     }
 
     private boolean storeFace(List<Character> toSave){

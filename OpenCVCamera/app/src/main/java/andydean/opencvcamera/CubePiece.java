@@ -25,6 +25,16 @@ public class CubePiece {
         return stickers;
     }
 
+    public boolean setSticker(Character newSticker, int location){
+        for(int i=0; i<location; i++)
+            if(stickers.get(i).equals(newSticker))
+                return false;
+        if(location > stickers.size() || stickers.get(location) != 'X')
+            return false;
+        stickers.set(location, newSticker);
+        return true;
+    }
+
     public boolean equals(CubePiece b){
         List<Character> bS = b.getStickers();
         boolean match = true;
@@ -38,7 +48,7 @@ public class CubePiece {
             else
                 match = false;
         }
-        return match;
+        return match && temp.isEmpty();
     }
 
     public boolean hasDuplicate(){
@@ -46,5 +56,20 @@ public class CubePiece {
             return stickers.get(0) == stickers.get(1) || stickers.get(0) == stickers.get(2) || stickers.get(1) == stickers.get(2);
         else
             return stickers.get(0) == stickers.get(1);
+    }
+
+    public boolean hasBlank(){
+        for(Character c : stickers)
+            if(c == 'X')
+                return true;
+
+        return false;
+    }
+
+    public CubePiece clone(){
+        if(stickers.size() == 2)
+            return new CubePiece(stickers.get(0), stickers.get(1));
+        else
+            return new CubePiece(stickers.get(0), stickers.get(1), stickers.get(2));
     }
 }
