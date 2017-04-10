@@ -384,7 +384,9 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
                 captured = new ArrayList<>();
                 state = ERROR_CHECK_STATE;
                 onScreenColourChange = true;
-            }
+            }else
+                state = VIDEO_STATE;
+
         }
 
         if(onScreenColourChange) {

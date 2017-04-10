@@ -3,6 +3,7 @@ package andydean.opencvcamera;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 
@@ -64,6 +65,7 @@ public class CubeNetBuilder extends AppCompatActivity {
     List<List<View>> onScreenCube = new ArrayList<>();
     //Faces supplied by activity caller
     ArrayList<ArrayList<Character>> faces;
+    ArrayList<Integer> netLocation;
 
     //Index arrays storing the cubePiece net, A is the piece number and B is the sticker num (a/b/c)
     //Allows for simpler translation from net -> cube
@@ -79,6 +81,8 @@ public class CubeNetBuilder extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cube_net_builder);
         faces = (ArrayList<ArrayList<Character>>) getIntent().getSerializableExtra("faces");
+        netLocation = new ArrayList<>(Arrays.asList(0,0,0,0,0,-1));
+
 
         //Set all of the globals
         setPieceIndexes();
@@ -92,6 +96,9 @@ public class CubeNetBuilder extends AppCompatActivity {
         //Set initial net to be the face given
         updateColours(faces);
 
+
+
+
         //Yellow square in the top right to signify busy
         double[] rgbVals = ColourDetector.getRGB('Y');
         findViewById(R.id.valid).setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
@@ -100,12 +107,13 @@ public class CubeNetBuilder extends AppCompatActivity {
         ArrayList<ArrayList<Character>> copy = cloneNet(faces);
 
         //Fit the faces together, drawing the new net if found
-        ArrayList<ArrayList<Character>> newNet = fitFaces(BLANK_NET, copy);
+        Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(BLANK_NET, new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, copy);
         //boolean valid = cubeFit(faces, 0);
 
-        if(newNet != null && isValid(newNet)) {
+        if(result != null && isValid(result.first)) {
             rgbVals = ColourDetector.getRGB('G');
-            updateColours(newNet);
+            updateColours(result.first);
+            netLocation = result.second;
         }
         else
             rgbVals = ColourDetector.getRGB('R');
@@ -122,12 +130,13 @@ public class CubeNetBuilder extends AppCompatActivity {
                 findViewById(R.id.valid).setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
 
                 ArrayList<ArrayList<Character>> copy = cloneNet(faces);
-                ArrayList<ArrayList<Character>> valid = fitFaces(BLANK_NET, copy);
+                Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(BLANK_NET,new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, copy);
                 //boolean valid = cubeFit(faces, 0);
 
-                if(valid != null) {
+                if(result != null) {
                     rgbVals = ColourDetector.getRGB('G');
-                    updateColours(valid);
+                    updateColours(result.first);
+                    netLocation = result.second;
                 }
                 else
                     rgbVals = ColourDetector.getRGB('R');
@@ -165,6 +174,7 @@ public class CubeNetBuilder extends AppCompatActivity {
                 updateColours(faces);
                 double[] rgbVals = ColourDetector.getRGB('X');
                 findViewById(R.id.valid).setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
+                netLocation = new ArrayList<>(Arrays.asList(0,0,0,0,0,-1));
             }
         });
 
@@ -172,32 +182,78 @@ public class CubeNetBuilder extends AppCompatActivity {
 
     /**
      * Reccursive function to try and fit the faces of the cube together
-     * @param oldNet **The current state of the net**
+     * @param currentNet **The current state of the net**
+     * @param currentRotation **The current position in the tree search**
+     * @param targetRotation **The starting position in the tree search**
      * @param facesLeft **The faces still to add to the net**
      * @return newNet **The new net created, if all sides are added, else null**
      */
-    private ArrayList<ArrayList<Character>> fitFaces(ArrayList<ArrayList<Character>> oldNet, ArrayList<ArrayList<Character>> facesLeft) {
+    private Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> fitFaces(ArrayList<ArrayList<Character>> currentNet, ArrayList<Integer> currentRotation, ArrayList<Integer> targetRotation, ArrayList<ArrayList<Character>> facesLeft) {
         //Unlink the face to add in
         ArrayList<Character> face = facesLeft.remove(0);
+        int faceNum = 5-facesLeft.size();
+        int initRotation = 0;
+
+        //Check if it is needing to skip to a later part in the tree
+        //Increment the white side to go to the next branch
+        //Return null will signal any earlier faces to turn if there are no more white level branches
+        if(lessEqual(currentRotation, targetRotation)) {
+            initRotation = targetRotation.get(faceNum);
+            if(faceNum == 5)
+                initRotation++;
+        }
 
         //Attempt to add in the face with each possible rotation
         //If added, try to add the next face. If the next face/s fail, try the next rotation until all tried
         for(int rotation=0; rotation<4; rotation++){
-            ArrayList<ArrayList<Character>> newNet = addSide(oldNet, face, 5-facesLeft.size());
 
-            if(newNet != null )
-                if (facesLeft.size() > 0) {
-                    ArrayList<ArrayList<Character>> facesLeftCopy = cloneNet(facesLeft);
-                    newNet = fitFaces(newNet, facesLeftCopy);
-                    if (newNet != null)
-                        return newNet;
-                }else
-                    return newNet;
+            //Skip to turning the face if needing to skip to later branch in the tree
+            if(rotation >= initRotation) {
+                //Attempt to add the face into the net
+                ArrayList<ArrayList<Character>> newNet = addSide(currentNet, face, faceNum);
+                //Go to next rotation if it failed
+                if (newNet != null)
+                    //Set the current location in the tree
+                    currentRotation.set(faceNum, rotation);
+                    //Check if any more faces need to be added
+                    if (facesLeft.size() > 0) {
+                        //Clone the list of faces left for later recursions to use
+                        ArrayList<ArrayList<Character>> facesLeftCopy = cloneNet(facesLeft);
 
+                        //Run the next layer of the tree
+                        Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(newNet, currentRotation, targetRotation, facesLeftCopy);
+                        //Check next rotation if lower layers return null
+                        if (result != null)
+                            return result;
 
+                    } else
+                        //Base case, return resulting net and the location in the tree
+                        return new Pair<>(newNet, currentRotation);
+            }
+
+            //Rotate the face and try again
             Collections.rotate(face,2);
         }
+        //All rotations failed, either at this level, or all lower levels
         return null;
+    }
+
+    /**
+     * Converts the locations/rotations from base 4 to base 10 and runs standard <= operator
+     * @param currentRotation **The left side of the operation**
+     * @param targetRotation **The right side of the operation**
+     * @return left <= right
+     */
+    private boolean lessEqual(ArrayList<Integer> currentRotation, ArrayList<Integer> targetRotation) {
+        int currentRot = 0;
+        int targetRot = 0;
+        for(int i=0; i<6; i++){
+            int curDigit = currentRotation.get(5-i);
+            int tarDigit = targetRotation.get(5-i);
+            currentRot += curDigit * (4^i);
+            targetRot += tarDigit * (4^i);
+        }
+        return currentRot <= targetRot;
     }
 
     /**

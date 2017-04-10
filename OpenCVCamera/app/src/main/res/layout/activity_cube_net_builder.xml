@@ -470,18 +470,18 @@
             android:id="@+id/start_cube_fit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Improved Fit"
-            android:layout_marginStart="20dp"
             android:layout_below="@+id/gridLayout2"
-            android:layout_toEndOf="@+id/brute_force" />
+            android:layout_marginStart="20dp"
+            android:layout_toEndOf="@+id/brute_force"
+            android:text="Get next net" />
 
         <Button
             android:id="@+id/brute_force"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Brute force fit"
+            android:layout_alignParentStart="true"
             android:layout_below="@+id/gridLayout2"
-            android:layout_alignParentStart="true" />
+            android:text="Brute force net" />
 
         <Button
             android:id="@+id/reset_net"
