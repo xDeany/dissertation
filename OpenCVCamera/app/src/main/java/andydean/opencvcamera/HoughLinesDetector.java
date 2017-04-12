@@ -637,7 +637,7 @@ public class HoughLinesDetector extends CubeDetector{
                 toReturn = onlyCanny.clone();
                 break;
             case "hough_lines_only":
-                toReturn = overlayHoughLines.clone();
+                toReturn = onlyHoughLines.clone();
                 break;
             case "hough_lines_overlay":
                 toReturn = overlayHoughLines.clone();

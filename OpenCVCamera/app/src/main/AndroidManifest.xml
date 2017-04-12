@@ -17,8 +17,7 @@
         android:label="@string/app_name"
         android:largeHeap="true"
         android:screenOrientation="landscape"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme.NoActionBar">
+        android:supportsRtl="true">
         <activity
             android:name=".SelectionScreen"
             android:screenOrientation="landscape"
@@ -32,16 +31,17 @@
         <activity
             android:name=".RealTimeAnalysis"
             android:screenOrientation="landscape"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme"/>
         <activity
             android:name=".ImageAnalysis"
             android:screenOrientation="landscape"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme"/>
         <activity
             android:name=".MainDetector"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".CubeNetBuilder"></activity>
+        <activity android:name=".CubeNetBuilder"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>
