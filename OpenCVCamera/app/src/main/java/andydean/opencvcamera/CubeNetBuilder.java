@@ -212,7 +212,7 @@ public class CubeNetBuilder extends AppCompatActivity {
                 //Attempt to add the face into the net
                 ArrayList<ArrayList<Character>> newNet = addSide(currentNet, face, faceNum);
                 //Go to next rotation if it failed
-                if (newNet != null)
+                if (newNet != null) {
                     //Set the current location in the tree
                     currentRotation.set(faceNum, rotation);
                     //Check if any more faces need to be added
@@ -229,6 +229,7 @@ public class CubeNetBuilder extends AppCompatActivity {
                     } else
                         //Base case, return resulting net and the location in the tree
                         return new Pair<>(newNet, currentRotation);
+                }
             }
 
             //Rotate the face and try again
