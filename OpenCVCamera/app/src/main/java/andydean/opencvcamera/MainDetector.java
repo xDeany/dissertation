@@ -329,7 +329,6 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
         return pairNum;
     }
 
-
     private void updateCornerFace(List<Character> face){
         for(int i = 0; i < 9 ; i++){
             Character c = face.get(i);
@@ -353,40 +352,42 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         drawnFrame = inputFrame.rgba();
 
-        if(state.equals(CAPTURE_STATE) && System.currentTimeMillis() < time + 3000) {
-            List<Point> corners = houghDetector.detectCubeLocation(drawnFrame);
-            List<Pair<Point, Character>> colours;
-            if (!corners.isEmpty()) {
-                colours = houghDetector.detectCubeColour(drawnFrame, corners);
+        if(state.equals(CAPTURE_STATE)) {
+            if (System.currentTimeMillis() < time + 3000) {
+                List<Point> corners = houghDetector.detectCubeLocation(drawnFrame);
+                List<Pair<Point, Character>> colours;
+                if (!corners.isEmpty()) {
+                    colours = houghDetector.detectCubeColour(drawnFrame, corners);
 
-                if (colours != null) {
-                    for(Pair<Point, Character> p : colours) {
-                        double[] rgbVals = ColourDetector.getRGB(p.second);
-                        Imgproc.circle(drawnFrame, p.first, 8, new Scalar(rgbVals[0], rgbVals[1], rgbVals[2], 255), 40);
+                    if (colours != null) {
+                        for (Pair<Point, Character> p : colours) {
+                            double[] rgbVals = ColourDetector.getRGB(p.second);
+                            Imgproc.circle(drawnFrame, p.first, 8, new Scalar(rgbVals[0], rgbVals[1], rgbVals[2], 255), 40);
+                        }
+                        captured.add(colours);
                     }
-                    captured.add(colours);
                 }
+            } else {
+                if (!captured.isEmpty()) {
+
+                    capturedFrame = drawnFrame.clone();
+                    capturedFrameWithPixels = drawnFrame.clone();
+
+                    List<Character> averaged = averageColours(captured);
+                    toSave = averaged;
+                    onScreenColours = new ArrayList<>();
+                    for (int i = 0; i < 9; i++) {
+                        Point p = captured.get(captured.size() - 1).get(i).first;
+                        Character c = averaged.get(i);
+                        onScreenColours.add(new Pair<>(p, c));
+                    }
+                    captured = new ArrayList<>();
+                    state = ERROR_CHECK_STATE;
+                    onScreenColourChange = true;
+                } else
+                    state = VIDEO_STATE;
+
             }
-        }else {
-            if(!captured.isEmpty()){
-
-                capturedFrame = drawnFrame.clone();
-                capturedFrameWithPixels = drawnFrame.clone();
-
-                List<Character> averaged = averageColours(captured);
-                toSave = averaged;
-                onScreenColours = new ArrayList<>();
-                for(int i = 0; i < 9; i++){
-                    Point p = captured.get(captured.size()-1).get(i).first;
-                    Character c = averaged.get(i);
-                    onScreenColours.add(new Pair<>(p,c));
-                }
-                captured = new ArrayList<>();
-                state = ERROR_CHECK_STATE;
-                onScreenColourChange = true;
-            }else
-                state = VIDEO_STATE;
-
         }
 
         if(onScreenColourChange) {
