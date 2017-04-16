@@ -302,7 +302,7 @@ public class SelectionScreen extends AppCompatActivity {
                 w.add('Y');
                 w.add('W');
                 w.add('W');
-                */
+
 
                 ArrayList<Character> r = new ArrayList<Character>(8);
                 r.add('R');
@@ -363,6 +363,67 @@ public class SelectionScreen extends AppCompatActivity {
                 w.add('O');
                 w.add('W');
                 w.add('B');
+                */
+
+                ArrayList<Character> r = new ArrayList<Character>(8);
+                r.add('Y');
+                r.add('R');
+                r.add('R');
+                r.add('R');
+                r.add('W');
+                r.add('W');
+                r.add('W');
+                r.add('G');
+
+                ArrayList<Character> o = new ArrayList<Character>(8);
+                o.add('O');
+                o.add('O');
+                o.add('W');
+                o.add('B');
+                o.add('Y');
+                o.add('Y');
+                o.add('B');
+                o.add('O');
+
+                ArrayList<Character> y = new ArrayList<Character>(8);
+                y.add('B');
+                y.add('Y');
+                y.add('R');
+                y.add('B');
+                y.add('B');
+                y.add('R');
+                y.add('G');
+                y.add('B');
+
+                ArrayList<Character> g = new ArrayList<Character>(8);
+                g.add('O');
+                g.add('O');
+                g.add('O');
+                g.add('Y');
+                g.add('Y');
+                g.add('Y');
+                g.add('R');
+                g.add('G');
+
+                ArrayList<Character> b = new ArrayList<Character>(8);
+                b.add('O');
+                b.add('W');
+                b.add('G');
+                b.add('B');
+                b.add('W');
+                b.add('W');
+                b.add('R');
+                b.add('R');
+
+                ArrayList<Character> w = new ArrayList<Character>(8);
+                w.add('G');
+                w.add('G');
+                w.add('G');
+                w.add('W');
+                w.add('B');
+                w.add('O');
+                w.add('Y');
+                w.add('G');
 
                 cube.add(r);
                 cube.add(o);

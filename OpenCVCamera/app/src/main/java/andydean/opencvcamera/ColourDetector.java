@@ -104,19 +104,19 @@ public class ColourDetector {
     /**
      * Translates the char of a colour to the appropriate rgb value
      * @param c ** Character value of colour **
-     * @return rgbVa;s ** The rgb Values for that colour **
+     * @return rgbVals ** The rgb Values for that colour **
      */
     public static double[] getRGB(char c){
         double[] rgbVals = new double[3];
         switch(c){
             case 'R':
-                rgbVals[0] = 255;
+                rgbVals[0] = 200;
                 rgbVals[1] = 0;
                 rgbVals[2] = 0;
                 break;
             case 'O':
-                rgbVals[0] = 255;
-                rgbVals[1] = 140;
+                rgbVals[0] = 228;
+                rgbVals[1] = 114;
                 rgbVals[2] = 0;
                 break;
             case 'Y':

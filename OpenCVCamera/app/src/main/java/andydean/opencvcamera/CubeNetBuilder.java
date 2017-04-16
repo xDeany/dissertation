@@ -1,11 +1,13 @@
 package andydean.opencvcamera;
 
 import android.graphics.Color;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,6 +65,11 @@ public class CubeNetBuilder extends AppCompatActivity {
     //Faces stored in ROYGBW order for consistency
     //Connection to the net displayed on screen
     List<List<View>> onScreenCube = new ArrayList<>();
+    TextView runTimeBruteForce;
+    TextView runTimeImproved;
+    final String BRUTE_FORCE_SUFFIX = "Time taken to build net with brute force algorithm - ";
+    final String IMPROVED_SUFFIX = "Time taken to build net with improved algorithm - ";
+
     //Faces supplied by activity caller
     ArrayList<ArrayList<Character>> faces;
     ArrayList<Integer> netLocation;
@@ -83,6 +90,11 @@ public class CubeNetBuilder extends AppCompatActivity {
         faces = (ArrayList<ArrayList<Character>>) getIntent().getSerializableExtra("faces");
         netLocation = new ArrayList<>(Arrays.asList(0,0,0,0,0,-1));
 
+        runTimeBruteForce = (TextView) findViewById(R.id.bruteForceText);
+        runTimeImproved = (TextView) findViewById(R.id.fasterText);
+
+        runTimeBruteForce.setText(BRUTE_FORCE_SUFFIX);
+        runTimeImproved.setText(IMPROVED_SUFFIX);
 
         //Set all of the globals
         setPieceIndexes();
@@ -107,7 +119,14 @@ public class CubeNetBuilder extends AppCompatActivity {
         ArrayList<ArrayList<Character>> copy = cloneNet(faces);
 
         //Fit the faces together, drawing the new net if found
+        long t1 = SystemClock.currentThreadTimeMillis();
         Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(BLANK_NET, new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, copy);
+        long t2 = SystemClock.currentThreadTimeMillis() - t1;
+        long mill = t2 % 1000;
+        long seconds = (t2 / 1000) % 60;
+        //boolean valid = cubeFit(faces, 0);
+        String str = IMPROVED_SUFFIX + String.valueOf(seconds) + "." + String.valueOf(mill) + " sec";
+        runTimeImproved.setText(str);
         //boolean valid = cubeFit(faces, 0);
 
         if(result != null && isValid(result.first)) {
@@ -130,9 +149,14 @@ public class CubeNetBuilder extends AppCompatActivity {
                 findViewById(R.id.valid).setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
 
                 ArrayList<ArrayList<Character>> copy = cloneNet(faces);
+                long t1 = SystemClock.currentThreadTimeMillis();
                 Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(BLANK_NET,new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, copy);
+                long t2 = SystemClock.currentThreadTimeMillis() - t1;
+                long mill = t2 % 1000;
+                long seconds = (t2 / 1000) % 60;
                 //boolean valid = cubeFit(faces, 0);
-
+                String str = IMPROVED_SUFFIX + String.valueOf(seconds) + "." + String.valueOf(mill) + " sec";
+                runTimeImproved.setText(str);
                 if(result != null) {
                     rgbVals = ColourDetector.getRGB('G');
                     updateColours(result.first);
@@ -154,7 +178,14 @@ public class CubeNetBuilder extends AppCompatActivity {
                 findViewById(R.id.valid).setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
 
                 ArrayList<ArrayList<Character>> copy = cloneNet(faces);
+                long t1 = SystemClock.currentThreadTimeMillis();
                 ArrayList<ArrayList<Character>> valid = cubeFit(copy, 0);
+                long t2 = SystemClock.currentThreadTimeMillis() - t1;
+                long mill = t2 % 1000;
+                long seconds = (t2 / 1000) % 60;
+                //boolean valid = cubeFit(faces, 0);
+                String str = BRUTE_FORCE_SUFFIX + String.valueOf(seconds) + "." + String.valueOf(mill) + " sec";
+                runTimeBruteForce.setText(str);
 
                 if(valid != null) {
                     rgbVals = ColourDetector.getRGB('G');

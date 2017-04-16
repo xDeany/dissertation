@@ -492,6 +492,27 @@
             android:layout_below="@+id/gridLayout2"
             android:layout_toEndOf="@+id/start_cube_fit" />
 
+        <TextView
+            android:id="@+id/bruteForceText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_toEndOf="@+id/gridLayout2"
+            android:ems="10"
+            tools:layout_editor_absoluteX="405dp"
+            tools:layout_editor_absoluteY="127dp" />
+
+        <TextView
+            android:id="@+id/fasterText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            tools:layout_editor_absoluteX="405dp"
+            tools:layout_editor_absoluteY="127dp"
+            android:layout_below="@+id/bruteForceText"
+            android:layout_toEndOf="@+id/gridLayout2"
+            android:layout_marginTop="20dp" />
+
     </RelativeLayout>
 
 </android.support.constraint.ConstraintLayout>
