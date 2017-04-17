@@ -2,11 +2,14 @@ package andydean.opencvcamera;
 
 import android.content.Intent;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -17,10 +20,14 @@ import org.opencv.core.Point;
 import org.opencv.imgcodecs.Imgcodecs;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class SelectionScreen extends AppCompatActivity {
 
@@ -49,6 +56,7 @@ public class SelectionScreen extends AppCompatActivity {
         Button testLocationDetector = (Button) findViewById(R.id.test_location_detector);
         Button mainDetector = (Button) findViewById(R.id.main_detector_button);
         Button cubeBuilder = (Button) findViewById(R.id.test_cube_builder_button);
+        Button netTest = (Button) findViewById(R.id.test_net_builders);
 
 
         testLocationDetector.setOnClickListener(new View.OnClickListener(){
@@ -108,10 +116,82 @@ public class SelectionScreen extends AppCompatActivity {
             }
         });
 
+        netTest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String path = Environment.getExternalStorageDirectory().getAbsoluteFile() + "/DissertationDataSet";
+                File dir = new File(path);
+                dir.mkdirs();
+
+                final ArrayList<Character> BLANK_ROW = new ArrayList<>(Arrays.asList('X','X','X','X','X','X','X','X'));
+                final ArrayList<ArrayList<Character>> BLANK_NET = new ArrayList<>(Arrays.asList(BLANK_ROW, BLANK_ROW, BLANK_ROW, BLANK_ROW, BLANK_ROW, BLANK_ROW));
+
+                List<CubePiece> vp = CubeNetBuilder.generateAllValidPieces();
+                List<CubePiece> corners = new ArrayList<>();
+                List<CubePiece> centres = new ArrayList<>();
+                List<Boolean> isCentre = new ArrayList<>(Arrays.asList(false,true,false,true,false,true,false,true,true,true,true,true,false,true,false,true,false,true,false,true));
+
+                List<Pair<Long, Long>> results = new ArrayList<>();
+                for(int num = 0; num<100; num++) {
+                    for (CubePiece cp : vp)
+                        cp.randomise();
+
+                    for (int i = 0; i < 20; i++)
+                        if (isCentre.get(i))
+                            centres.add(vp.get(i));
+                        else
+                            corners.add(vp.get(i));
+
+
+                    Collections.shuffle(corners);
+                    Collections.shuffle(centres);
+
+                    List<CubePiece> cube = new ArrayList<>();
+                    for (int i = 0; i < 20; i++)
+                        if (isCentre.get(i))
+                            cube.add(centres.remove(0));
+                        else
+                            cube.add(corners.remove(0));
+
+                    ArrayList<ArrayList<Character>> net = CubeNetBuilder.cubeToNet(cube);
+
+                    for (int i = 0; i < 6; i++) {
+                        int randomNum = ThreadLocalRandom.current().nextInt(0, 4);
+                        Collections.rotate(net.get(i), randomNum * 2);
+                    }
+
+                    long t1 = SystemClock.currentThreadTimeMillis();
+                    CubeNetBuilder.fitFaces(BLANK_NET, new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), net);
+                    long t2 = SystemClock.currentThreadTimeMillis();
+                    CubeNetBuilder.dfs(net, 0);
+                    long t3 = SystemClock.currentThreadTimeMillis();
+
+                    long improved = t2 - t1;
+                    long slow = t3 - t2;
+                    Pair<Long, Long> times = new Pair<>(improved, slow);
+                    results.add(times);
+                }
+
+                try {
+                    File file = new File(path + "/net_builders_10.txt");
+                    FileOutputStream fOut = new FileOutputStream(file, true);
+                    for(Pair<Long, Long> pLL : results){
+                        long a = pLL.first;
+                        long b = pLL.second;
+                        String str = String.valueOf(a) + ", " + String.valueOf(b) + "\n";
+                        fOut.write(str.getBytes());
+                    }
+                    fOut.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
         cubeBuilder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ArrayList<ArrayList<Character>> cube = new ArrayList<>();
+                ArrayList<ArrayList<Character>> net = new ArrayList<>();
                 /*
                 for(int i=0; i<6; i++){
                     ArrayList<Character> lc = new ArrayList<>();
@@ -425,15 +505,15 @@ public class SelectionScreen extends AppCompatActivity {
                 w.add('Y');
                 w.add('G');
 
-                cube.add(r);
-                cube.add(o);
-                cube.add(y);
-                cube.add(g);
-                cube.add(b);
-                cube.add(w);
+                net.add(r);
+                net.add(o);
+                net.add(y);
+                net.add(g);
+                net.add(b);
+                net.add(w);
 
                 Intent i = new Intent(SelectionScreen.this, CubeNetBuilder.class);
-                i.putExtra("faces", cube);
+                i.putExtra("faces", net);
                 startActivity(i);
             }
         });

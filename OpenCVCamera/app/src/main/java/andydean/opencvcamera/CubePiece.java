@@ -1,7 +1,9 @@
 package andydean.opencvcamera;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by Andy on 04/04/2017.
@@ -98,5 +100,9 @@ public class CubePiece {
             return new CubePiece(stickers.get(0), stickers.get(1));
         else
             return new CubePiece(stickers.get(0), stickers.get(1), stickers.get(2));
+    }
+
+    public void randomise(){
+        Collections.shuffle(stickers);
     }
 }

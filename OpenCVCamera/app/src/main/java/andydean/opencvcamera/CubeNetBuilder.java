@@ -61,6 +61,22 @@ public class CubeNetBuilder extends AppCompatActivity {
                           | 11b | W   | 8a  |
                           | 16b | 17b | 18c |
                           |-----------------|
+
+                          ArrayList<Integer> red = new ArrayList<>(Arrays.asList(0,1,2,3,4,5,6,7));
+        ArrayList<Integer> orange = new ArrayList<>(Arrays.asList(12,13,14,15,16,17,18,19));
+        ArrayList<Integer> yellow = new ArrayList<>(Arrays.asList(14,13,12,9,2,1,0,10));
+        ArrayList<Integer> green = new ArrayList<>(Arrays.asList(2,9,12,19,18,8,4,3));
+        ArrayList<Integer> blue = new ArrayList<>(Arrays.asList(14,10,0,7,6,11,16,15));
+        ArrayList<Integer> white = new ArrayList<>(Arrays.asList(6,5,4,8,18,17,16,11));
+        allPieceIndexesA = new ArrayList<>(Arrays.asList(red, orange, yellow, green, blue, white));
+
+        red = new ArrayList<>(Arrays.asList(0,0,0,0,0,0,0,0));
+        orange = new ArrayList<>(Arrays.asList(0,0,0,0,0,0,0,0));
+        yellow = new ArrayList<>(Arrays.asList(2,1,2,1,1,1,1,0));
+        green = new ArrayList<>(Arrays.asList(2,0,1,1,1,1,2,1));
+        blue = new ArrayList<>(Arrays.asList(1,1,2,1,1,0,2,1));
+        white = new ArrayList<>(Arrays.asList(2,1,1,0,2,1,1,1));
+        allPieceIndexesB = new ArrayList<>(Arrays.asList(red, orange, yellow, green, blue, white));
          */
     //Faces stored in ROYGBW order for consistency
     //Connection to the net displayed on screen
@@ -76,12 +92,23 @@ public class CubeNetBuilder extends AppCompatActivity {
 
     //Index arrays storing the cubePiece net, A is the piece number and B is the sticker num (a/b/c)
     //Allows for simpler translation from net -> cube
-    List<ArrayList<Integer>> allPieceIndexesA;
-    List<ArrayList<Integer>> allPieceIndexesB;
+    private static List<ArrayList<Integer>> allPieceIndexesA = new ArrayList<>(Arrays.asList(new ArrayList<>(Arrays.asList(0,1,2,3,4,5,6,7)),
+                                                                                new ArrayList<>(Arrays.asList(12,13,14,15,16,17,18,19)),
+                                                                                new ArrayList<>(Arrays.asList(14,13,12,9,2,1,0,10)),
+                                                                                new ArrayList<>(Arrays.asList(2,9,12,19,18,8,4,3)),
+                                                                                new ArrayList<>(Arrays.asList(14,10,0,7,6,11,16,15)),
+                                                                                new ArrayList<>(Arrays.asList(6,5,4,8,18,17,16,11))));
+
+    private static List<ArrayList<Integer>> allPieceIndexesB = new ArrayList<>(Arrays.asList(new ArrayList<>(Arrays.asList(0,0,0,0,0,0,0,0)),
+                                                                                new ArrayList<>(Arrays.asList(0,0,0,0,0,0,0,0)),
+                                                                                new ArrayList<>(Arrays.asList(2,1,2,1,1,1,1,0)),
+                                                                                new ArrayList<>(Arrays.asList(2,0,1,1,1,1,2,1)),
+                                                                                new ArrayList<>(Arrays.asList(1,1,2,1,1,0,2,1)),
+                                                                                new ArrayList<>(Arrays.asList(2,1,1,0,2,1,1,1))));
 
     //The blank net
     final ArrayList<Character> BLANK_ROW = new ArrayList<>(Arrays.asList('X','X','X','X','X','X','X','X'));
-    final ArrayList<ArrayList<Character>> BLANK_NET = new ArrayList<>(Arrays.asList(BLANK_ROW, BLANK_ROW, BLANK_ROW, BLANK_ROW, BLANK_ROW, BLANK_ROW, BLANK_ROW, BLANK_ROW));
+    final ArrayList<ArrayList<Character>> BLANK_NET = new ArrayList<>(Arrays.asList(BLANK_ROW, BLANK_ROW, BLANK_ROW, BLANK_ROW, BLANK_ROW, BLANK_ROW));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,7 +124,7 @@ public class CubeNetBuilder extends AppCompatActivity {
         runTimeImproved.setText(IMPROVED_SUFFIX);
 
         //Set all of the globals
-        setPieceIndexes();
+        //setPieceIndexes();
 
         //Connect the array for storing the on screen net with the net in XML
         connectScreenCube();
@@ -116,18 +143,18 @@ public class CubeNetBuilder extends AppCompatActivity {
         findViewById(R.id.valid).setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
 
         //Create and use a copy of the inital net
-        ArrayList<ArrayList<Character>> copy = cloneNet(faces);
+        //ArrayList<ArrayList<Character>> copy = cloneNet(faces);
 
         //Fit the faces together, drawing the new net if found
         long t1 = SystemClock.currentThreadTimeMillis();
-        Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(BLANK_NET, new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, copy);
+        Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(BLANK_NET, new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, faces);
         long t2 = SystemClock.currentThreadTimeMillis() - t1;
         long mill = t2 % 1000;
         long seconds = (t2 / 1000) % 60;
-        //boolean valid = cubeFit(faces, 0);
+        //boolean valid = dfs(faces, 0);
         String str = IMPROVED_SUFFIX + String.valueOf(seconds) + "." + String.valueOf(mill) + " sec";
         runTimeImproved.setText(str);
-        //boolean valid = cubeFit(faces, 0);
+        //boolean valid = dfs(faces, 0);
 
         if(result != null && isValid(result.first)) {
             rgbVals = ColourDetector.getRGB('G');
@@ -148,13 +175,13 @@ public class CubeNetBuilder extends AppCompatActivity {
                 double[] rgbVals = ColourDetector.getRGB('Y');
                 findViewById(R.id.valid).setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
 
-                ArrayList<ArrayList<Character>> copy = cloneNet(faces);
+                //ArrayList<ArrayList<Character>> copy = cloneNet(faces);
                 long t1 = SystemClock.currentThreadTimeMillis();
-                Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(BLANK_NET,new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, copy);
+                Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(BLANK_NET,new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, faces);
                 long t2 = SystemClock.currentThreadTimeMillis() - t1;
                 long mill = t2 % 1000;
                 long seconds = (t2 / 1000) % 60;
-                //boolean valid = cubeFit(faces, 0);
+                //boolean valid = dfs(faces, 0);
                 String str = IMPROVED_SUFFIX + String.valueOf(seconds) + "." + String.valueOf(mill) + " sec";
                 runTimeImproved.setText(str);
                 if(result != null) {
@@ -177,13 +204,15 @@ public class CubeNetBuilder extends AppCompatActivity {
                 double[] rgbVals = ColourDetector.getRGB('Y');
                 findViewById(R.id.valid).setBackgroundColor(Color.rgb((int) rgbVals[0], (int) rgbVals[1], (int) rgbVals[2]));
 
-                ArrayList<ArrayList<Character>> copy = cloneNet(faces);
+                //ArrayList<ArrayList<Character>> copy = cloneNet(faces);
                 long t1 = SystemClock.currentThreadTimeMillis();
-                ArrayList<ArrayList<Character>> valid = cubeFit(copy, 0);
-                long t2 = SystemClock.currentThreadTimeMillis() - t1;
-                long mill = t2 % 1000;
-                long seconds = (t2 / 1000) % 60;
-                //boolean valid = cubeFit(faces, 0);
+                ArrayList<ArrayList<Character>> valid = dfs(faces, 0);
+                long t2 = SystemClock.currentThreadTimeMillis();
+
+                long diff = t2 - t1;
+                long mill = diff % 1000;
+                long seconds = (diff / 1000) % 60;
+                //boolean valid = dfs(faces, 0);
                 String str = BRUTE_FORCE_SUFFIX + String.valueOf(seconds) + "." + String.valueOf(mill) + " sec";
                 runTimeBruteForce.setText(str);
 
@@ -219,10 +248,11 @@ public class CubeNetBuilder extends AppCompatActivity {
      * @param facesLeft **The faces still to add to the net**
      * @return newNet **The new net created, if all sides are added, else null**
      */
-    private Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> fitFaces(ArrayList<ArrayList<Character>> currentNet, ArrayList<Integer> currentRotation, ArrayList<Integer> targetRotation, ArrayList<ArrayList<Character>> facesLeft) {
+    public static Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> fitFaces(ArrayList<ArrayList<Character>> currentNet, ArrayList<Integer> currentRotation, ArrayList<Integer> targetRotation, ArrayList<ArrayList<Character>> facesLeft) {
+        ArrayList<ArrayList<Character>> facesLeftCopy = cloneNet(facesLeft);
         //Unlink the face to add in
-        ArrayList<Character> face = facesLeft.remove(0);
-        int faceNum = 5-facesLeft.size();
+        ArrayList<Character> face = facesLeftCopy.remove(0);
+        int faceNum = 5-facesLeftCopy.size();
         int initRotation = 0;
 
         //Check if it is needing to skip to a later part in the tree
@@ -247,9 +277,7 @@ public class CubeNetBuilder extends AppCompatActivity {
                     //Set the current location in the tree
                     currentRotation.set(faceNum, rotation);
                     //Check if any more faces need to be added
-                    if (facesLeft.size() > 0) {
-                        //Clone the list of faces left for later recursions to use
-                        ArrayList<ArrayList<Character>> facesLeftCopy = cloneNet(facesLeft);
+                    if (facesLeftCopy.size() > 0) {
 
                         //Run the next layer of the tree
                         Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(newNet, currentRotation, targetRotation, facesLeftCopy);
@@ -276,7 +304,7 @@ public class CubeNetBuilder extends AppCompatActivity {
      * @param targetRotation **The right side of the operation**
      * @return left <= right
      */
-    private boolean lessEqual(ArrayList<Integer> currentRotation, ArrayList<Integer> targetRotation) {
+    private static boolean lessEqual(ArrayList<Integer> currentRotation, ArrayList<Integer> targetRotation) {
         int currentRot = 0;
         int targetRot = 0;
         for(int i=0; i<6; i++){
@@ -298,7 +326,7 @@ public class CubeNetBuilder extends AppCompatActivity {
      * @param faceNum **The position to add the face to**
      * @return newNet if successful, else null
      */
-    private ArrayList<ArrayList<Character>> addSide(ArrayList<ArrayList<Character>> net, ArrayList<Character> face, int faceNum){
+    private static ArrayList<ArrayList<Character>> addSide(ArrayList<ArrayList<Character>> net, ArrayList<Character> face, int faceNum){
         //Convert net to Cube form
         List<CubePiece> cube = netToCube(net);
 
@@ -332,26 +360,26 @@ public class CubeNetBuilder extends AppCompatActivity {
     }
 
     /**
-     * Brute force way of fitting the net together. Recursively tries all permutations of the net
+     * Depth first search way of fitting the net together. Recursively tries all permutations of the net
      * @param net **The current net of the cube**
      * @param level **Level of recursion**
      * @return newNet if successful, else null
      */
-    private ArrayList<ArrayList<Character>> cubeFit(ArrayList<ArrayList<Character>> net, int level) {
+    public static ArrayList<ArrayList<Character>> dfs(ArrayList<ArrayList<Character>> net, int level) {
+        ArrayList<ArrayList<Character>> copy = cloneNet(net);
         //Try each rotation of this level, return net if successful, else try all permutations of the next layer
         for (int rotations = 0; rotations < 4; rotations++) {
 
-            if (isValid(net))
-                return net;
+            if (isValid(copy))
+                return copy;
 
             if(level < 5) {
-                ArrayList<ArrayList<Character>> copy = cloneNet(net);
-                ArrayList<ArrayList<Character>> newNet = cubeFit(copy, level + 1);
+                ArrayList<ArrayList<Character>> newNet = dfs(copy, level + 1);
                 if (newNet != null)
                     return newNet;
             }
 
-            Collections.rotate(net.get(level), 2);
+            Collections.rotate(copy.get(level), 2);
         }
         return null;
     }
@@ -361,7 +389,7 @@ public class CubeNetBuilder extends AppCompatActivity {
      * @param net **Net to be checked**
      * @return valid or not valid
      */
-    private boolean isValid(ArrayList<ArrayList<Character>> net){
+    private static boolean isValid(ArrayList<ArrayList<Character>> net){
         List<CubePiece> validPieces = generateAllValidPieces();
         //Generate a cube from the net, check that this cube contains the same pieces as the list of valid pieces (no more, no less)
         List<CubePiece> cube = netToCube(net);
@@ -387,7 +415,7 @@ public class CubeNetBuilder extends AppCompatActivity {
      * @param cube **The cube to convert**
      * @return net of the cube
      */
-    private ArrayList<ArrayList<Character>> cubeToNet(List<CubePiece> cube){
+    public static ArrayList<ArrayList<Character>> cubeToNet(List<CubePiece> cube){
         ArrayList<ArrayList<Character>> net = new ArrayList<>();
         for(int i=0; i<6; i++){
             ArrayList<Character> face = new ArrayList<>();
@@ -405,7 +433,7 @@ public class CubeNetBuilder extends AppCompatActivity {
      * @param net **Net to be converted**
      * @return cube form of the net
      */
-    private List<CubePiece> netToCube(ArrayList<ArrayList<Character>> net){
+    private static List<CubePiece> netToCube(ArrayList<ArrayList<Character>> net){
         ArrayList<Character> n = new ArrayList<>();
         for(ArrayList<Character> l : net)
             n.addAll(l);
@@ -458,9 +486,9 @@ public class CubeNetBuilder extends AppCompatActivity {
         return newNet;
     }
 
-    /**
+    /*
      * Populates the lists that connect the stickers on a net, to individual pieces on a cube
-     */
+     *
     private void setPieceIndexes() {
         ArrayList<Integer> red = new ArrayList<>(Arrays.asList(0,1,2,3,4,5,6,7));
         ArrayList<Integer> orange = new ArrayList<>(Arrays.asList(12,13,14,15,16,17,18,19));
@@ -477,13 +505,13 @@ public class CubeNetBuilder extends AppCompatActivity {
         blue = new ArrayList<>(Arrays.asList(1,1,2,1,1,0,2,1));
         white = new ArrayList<>(Arrays.asList(2,1,1,0,2,1,1,1));
         allPieceIndexesB = new ArrayList<>(Arrays.asList(red, orange, yellow, green, blue, white));
-    }
+    }*/
 
     /**
      * Generates a list of all the valid combinations of pieces
      * @return Technically, a fully solved cube
      */
-    private List<CubePiece> generateAllValidPieces(){
+    public static List<CubePiece> generateAllValidPieces(){
         List<CubePiece> validPieces = new ArrayList<>();
         validPieces.add(new CubePiece('R', 'Y', 'B'));
         validPieces.add(new CubePiece('R', 'Y'));

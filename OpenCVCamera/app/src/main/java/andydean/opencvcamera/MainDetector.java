@@ -419,7 +419,16 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
             Log.d(TAG,"OpenCV loaded successfully");
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallBack);
         }
+        if(javaCameraView!=null)
+            javaCameraView.enableView();
+    }
 
+    @Override
+    protected void onPause(){
+        super.onPause();
+        drawnFrame.release();
+        if(javaCameraView!=null)
+            javaCameraView.disableView();
     }
 
     private List<Character> averageColours(List<List<Pair<Point,Character>>> totalDetected){
