@@ -47,6 +47,36 @@ public class ColourDetector {
         return colours;
     }
 
+    /**
+     * Checks if a and b refer to opposite colours on the cube
+     * @param a **Colour a**
+     * @param b **Colour b**
+     * @return isOpp(a,b)
+     */
+    public static boolean isOpposite(char a, char b){
+        switch (a){
+            case 'R':
+                return b == 'O';
+            case 'O':
+                return b == 'R';
+            case 'Y':
+                return b == 'W';
+            case 'G':
+                return b == 'B';
+            case 'B':
+                return b == 'G';
+            case 'W':
+                return b == 'Y';
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Takes a colour and returns the next colour
+     * @param c **Initial colour**
+     * @return colour++
+     */
     public static char nextColour(char c){
         int i = getColourInt(c);
         i = (i+1)%6;

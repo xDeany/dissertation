@@ -10,15 +10,28 @@ import java.util.List;
 public class CubePiece {
 
     private List<Character> stickers = new ArrayList<>();
+    private boolean edgePiece;
+    private boolean full;
+    private boolean hasDuplicate;
     public CubePiece(char a, char b, char c) {
         stickers.add(a);
         stickers.add(b);
         stickers.add(c);
+        edgePiece = false;
+        hasDuplicate = checkDuplicates();
+        full = checkFull();
     }
 
     public CubePiece(char a, char b) {
         stickers.add(a);
         stickers.add(b);
+        edgePiece = true;
+        hasDuplicate = checkDuplicates();
+        full = checkFull();
+    }
+
+    public boolean isEdgePiece(){
+        return edgePiece;
     }
 
     public List<Character> getStickers() {
@@ -26,44 +39,58 @@ public class CubePiece {
     }
 
     public boolean setSticker(Character newSticker, int location){
-        for(int i=0; i<location; i++)
-            if(stickers.get(i).equals(newSticker))
-                return false;
         if(location > stickers.size() || stickers.get(location) != 'X')
             return false;
+
+        if(edgePiece) {
+            if (stickers.get(1 - location).equals(newSticker) || ColourDetector.isOpposite(stickers.get(1 - location), newSticker))
+                return false;
+        }
+        else
+            for(int i =0; i<3 ;i++)
+                if(location != i && (stickers.get(i).equals(newSticker) || ColourDetector.isOpposite(stickers.get(i), newSticker)) )
+                        return false;
+
+
         stickers.set(location, newSticker);
+        hasDuplicate = checkDuplicates();
+        full = checkFull();
         return true;
     }
 
     public boolean equals(CubePiece b){
         List<Character> bS = b.getStickers();
-        boolean match = true;
-        ArrayList<Character> temp = new ArrayList<>();
-        temp.addAll(stickers);
-        for(char c : bS) {
-            if(temp.contains(c)) {
-                int i = temp.indexOf(c);
-                temp.remove(i);
-            }
-            else
-                match = false;
-        }
-        return match && temp.isEmpty();
+
+        if(b.isEdgePiece() != edgePiece)
+            return false;
+
+        if(edgePiece)
+            return bS.contains(stickers.get(0)) && bS.contains(stickers.get(1));
+        else
+            return bS.contains(stickers.get(0)) && bS.contains(stickers.get(1)) && bS.contains(stickers.get(2));
+
     }
 
     public boolean hasDuplicate(){
-        if(stickers.size() == 3)
-            return stickers.get(0) == stickers.get(1) || stickers.get(0) == stickers.get(2) || stickers.get(1) == stickers.get(2);
-        else
-            return stickers.get(0) == stickers.get(1);
+        return hasDuplicate;
     }
 
-    public boolean hasBlank(){
-        for(Character c : stickers)
-            if(c == 'X')
-                return true;
+    public boolean isFull(){
+        return full;
+    }
 
-        return false;
+    private boolean checkDuplicates(){
+        if(edgePiece)
+            return stickers.get(0) == stickers.get(1);
+        else
+            return stickers.get(0) == stickers.get(1) || stickers.get(0) == stickers.get(2) || stickers.get(1) == stickers.get(2);
+    }
+
+    private boolean checkFull(){
+        if(edgePiece)
+            return stickers.get(0) != 'X' && stickers.get(1) != 'X';
+        else
+            return stickers.get(0) != 'X' && stickers.get(1) != 'X' && stickers.get(2) != 'X';
     }
 
     public CubePiece clone(){

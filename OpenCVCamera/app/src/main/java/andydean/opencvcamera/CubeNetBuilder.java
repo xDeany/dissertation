@@ -301,9 +301,11 @@ public class CubeNetBuilder extends AppCompatActivity {
     private ArrayList<ArrayList<Character>> addSide(ArrayList<ArrayList<Character>> net, ArrayList<Character> face, int faceNum){
         //Convert net to Cube form
         List<CubePiece> cube = netToCube(net);
+
         //List to contain copies of the new pieces created
         ArrayList<CubePiece> alteredPieces = new ArrayList<>();
         boolean allAdded = true;
+
         //Add face to cube, allAdded checks the pieces don't have multiple stickers of the same colour
         for(int i=0; i<8; i++){
             Character c = face.get(i);
@@ -315,30 +317,16 @@ public class CubeNetBuilder extends AppCompatActivity {
         if(!allAdded)
             return null;
 
-        //For each new piece, check that they are valid pieces (ie. there can be no piece with red and yellow on)
-        List<CubePiece> validPieces = generateAllValidPieces();
-        for(CubePiece cp : alteredPieces){
-            //Only check full pieces
-            if(!cp.hasBlank()) {
-                boolean valid = false;
-                Iterator<CubePiece> pItr = validPieces.iterator();
-                while (pItr.hasNext() && !valid) {
-                    //Find a valid piece that matches the new piece
-                    CubePiece a = pItr.next();
-                    valid = a.equals(cp);
-                }
-                if(!valid)
-                    return null;
-            }
+        //Check that all full altered pieces are unique
+        for(CubePiece ap : alteredPieces) {
+            int numMatches = 0;
+            if (ap.isFull())
+                for (CubePiece cp2 : cube)
+                    if (ap.equals(cp2))
+                        numMatches++;
+            if(numMatches > 1)
+                return null;
         }
-
-
-        //Check that all pieces in the list (with stickers on all sides) don't already exist elsewhere on the cube
-        for(CubePiece cp : cube)
-            if(!cp.hasBlank())
-                for(CubePiece cp2 : cube)
-                        if (cp != cp2 && cp.equals(cp2))
-                            return null;
 
         return cubeToNet(cube);
     }

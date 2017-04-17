@@ -376,14 +376,14 @@ public class SelectionScreen extends AppCompatActivity {
                 r.add('G');
 
                 ArrayList<Character> o = new ArrayList<Character>(8);
+                o.add('B');
+                o.add('O');
                 o.add('O');
                 o.add('O');
                 o.add('W');
                 o.add('B');
                 o.add('Y');
                 o.add('Y');
-                o.add('B');
-                o.add('O');
 
                 ArrayList<Character> y = new ArrayList<Character>(8);
                 y.add('B');
