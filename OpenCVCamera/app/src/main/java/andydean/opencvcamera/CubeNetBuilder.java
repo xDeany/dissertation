@@ -147,7 +147,7 @@ public class CubeNetBuilder extends AppCompatActivity {
 
         //Fit the faces together, drawing the new net if found
         long t1 = SystemClock.currentThreadTimeMillis();
-        Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(BLANK_NET, new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, faces);
+        Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(netToCube(BLANK_NET), new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, faces);
         long t2 = SystemClock.currentThreadTimeMillis() - t1;
         long mill = t2 % 1000;
         long seconds = (t2 / 1000) % 60;
@@ -177,7 +177,7 @@ public class CubeNetBuilder extends AppCompatActivity {
 
                 //ArrayList<ArrayList<Character>> copy = cloneNet(faces);
                 long t1 = SystemClock.currentThreadTimeMillis();
-                Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(BLANK_NET,new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, faces);
+                Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(netToCube(BLANK_NET),new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, faces);
                 long t2 = SystemClock.currentThreadTimeMillis() - t1;
                 long mill = t2 % 1000;
                 long seconds = (t2 / 1000) % 60;
@@ -242,13 +242,13 @@ public class CubeNetBuilder extends AppCompatActivity {
 
     /**
      * Reccursive function to try and fit the faces of the cube together
-     * @param currentNet **The current state of the net**
+     * @param currentCube **The current state of the cube**
      * @param currentRotation **The current position in the tree search**
      * @param targetRotation **The starting position in the tree search**
      * @param facesLeft **The faces still to add to the net**
      * @return newNet **The new net created, if all sides are added, else null**
      */
-    public static Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> fitFaces(ArrayList<ArrayList<Character>> currentNet, ArrayList<Integer> currentRotation, ArrayList<Integer> targetRotation, ArrayList<ArrayList<Character>> facesLeft) {
+    public static Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> fitFaces(List<CubePiece> currentCube, ArrayList<Integer> currentRotation, ArrayList<Integer> targetRotation, ArrayList<ArrayList<Character>> facesLeft) {
         ArrayList<ArrayList<Character>> facesLeftCopy = cloneNet(facesLeft);
         //Unlink the face to add in
         ArrayList<Character> face = facesLeftCopy.remove(0);
@@ -271,23 +271,23 @@ public class CubeNetBuilder extends AppCompatActivity {
             //Skip to turning the face if needing to skip to later branch in the tree
             if(rotation >= initRotation) {
                 //Attempt to add the face into the net
-                ArrayList<ArrayList<Character>> newNet = addSide(currentNet, face, faceNum);
+                ArrayList<CubePiece> newCube = addSide(currentCube, face, faceNum);
                 //Go to next rotation if it failed
-                if (newNet != null) {
+                if (newCube != null) {
                     //Set the current location in the tree
                     currentRotation.set(faceNum, rotation);
                     //Check if any more faces need to be added
                     if (facesLeftCopy.size() > 0) {
 
                         //Run the next layer of the tree
-                        Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(newNet, currentRotation, targetRotation, facesLeftCopy);
+                        Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(newCube, currentRotation, targetRotation, facesLeftCopy);
                         //Check next rotation if lower layers return null
                         if (result != null)
                             return result;
 
                     } else
                         //Base case, return resulting net and the location in the tree
-                        return new Pair<>(newNet, currentRotation);
+                        return new Pair<>(cubeToNet(newCube), currentRotation);
                 }
             }
 
@@ -321,14 +321,16 @@ public class CubeNetBuilder extends AppCompatActivity {
      * The new face must not create pieces that have duplicate stickers on (i.e a yellow-yellow piece is not valid)
      * The pieces created by the new face must be valid pieces
      * All pieces on the cube must be unique
-     * @param net **The current net of the cube**
+     * @param cube **The current cube**
      * @param face **The face to be added**
      * @param faceNum **The position to add the face to**
      * @return newNet if successful, else null
      */
-    private static ArrayList<ArrayList<Character>> addSide(ArrayList<ArrayList<Character>> net, ArrayList<Character> face, int faceNum){
-        //Convert net to Cube form
-        List<CubePiece> cube = netToCube(net);
+    private static ArrayList<CubePiece> addSide(List<CubePiece> cube, ArrayList<Character> face, int faceNum){
+        //Copy the cube
+        ArrayList<CubePiece> cubeClone = new ArrayList<>();
+        for(CubePiece c : cube)
+            cubeClone.add(c.clone());
 
         //List to contain copies of the new pieces created
         ArrayList<CubePiece> alteredPieces = new ArrayList<>();
@@ -337,8 +339,8 @@ public class CubeNetBuilder extends AppCompatActivity {
         //Add face to cube, allAdded checks the pieces don't have multiple stickers of the same colour
         for(int i=0; i<8; i++){
             Character c = face.get(i);
-            boolean added = cube.get(allPieceIndexesA.get(faceNum).get(i)).setSticker(c,allPieceIndexesB.get(faceNum).get(i));
-            alteredPieces.add(cube.get(allPieceIndexesA.get(faceNum).get(i)).clone());
+            boolean added = cubeClone.get(allPieceIndexesA.get(faceNum).get(i)).setSticker(c,allPieceIndexesB.get(faceNum).get(i));
+            alteredPieces.add(cubeClone.get(allPieceIndexesA.get(faceNum).get(i)).clone());
             allAdded = allAdded && added;
         }
 
@@ -349,14 +351,14 @@ public class CubeNetBuilder extends AppCompatActivity {
         for(CubePiece ap : alteredPieces) {
             int numMatches = 0;
             if (ap.isFull())
-                for (CubePiece cp2 : cube)
+                for (CubePiece cp2 : cubeClone)
                     if (ap.equals(cp2))
                         numMatches++;
             if(numMatches > 1)
                 return null;
         }
 
-        return cubeToNet(cube);
+        return cubeClone;
     }
 
     /**
@@ -433,7 +435,7 @@ public class CubeNetBuilder extends AppCompatActivity {
      * @param net **Net to be converted**
      * @return cube form of the net
      */
-    private static List<CubePiece> netToCube(ArrayList<ArrayList<Character>> net){
+    public static List<CubePiece> netToCube(ArrayList<ArrayList<Character>> net){
         ArrayList<Character> n = new ArrayList<>();
         for(ArrayList<Character> l : net)
             n.addAll(l);

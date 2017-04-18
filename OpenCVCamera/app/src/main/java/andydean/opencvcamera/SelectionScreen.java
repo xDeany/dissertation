@@ -131,8 +131,8 @@ public class SelectionScreen extends AppCompatActivity {
                 List<CubePiece> centres = new ArrayList<>();
                 List<Boolean> isCentre = new ArrayList<>(Arrays.asList(false,true,false,true,false,true,false,true,true,true,true,true,false,true,false,true,false,true,false,true));
 
-                List<Pair<Long, Long>> results = new ArrayList<>();
-                for(int num = 0; num<100; num++) {
+                List<Long> results = new ArrayList<>();
+                for(int num = 0; num<1000; num++) {
                     for (CubePiece cp : vp)
                         cp.randomise();
 
@@ -160,25 +160,30 @@ public class SelectionScreen extends AppCompatActivity {
                         Collections.rotate(net.get(i), randomNum * 2);
                     }
 
+                    Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = CubeNetBuilder.fitFaces(CubeNetBuilder.netToCube(BLANK_NET), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), net);
+
+                    for(ArrayList<Character> face : result.first)
+                        Collections.rotate(face,2);
+
                     long t1 = SystemClock.currentThreadTimeMillis();
-                    CubeNetBuilder.fitFaces(BLANK_NET, new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), net);
+                    CubeNetBuilder.fitFaces(CubeNetBuilder.netToCube(BLANK_NET), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), net);
                     long t2 = SystemClock.currentThreadTimeMillis();
-                    CubeNetBuilder.dfs(net, 0);
-                    long t3 = SystemClock.currentThreadTimeMillis();
+                    //ArrayList<Character> f = net.remove(1);
+                    //net.add(f);
+                    //long t3 = SystemClock.currentThreadTimeMillis();
+                    //CubeNetBuilder.fitFaces(BLANK_NET, new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), net);
+                    //long t4 = SystemClock.currentThreadTimeMillis();
 
                     long improved = t2 - t1;
-                    long slow = t3 - t2;
-                    Pair<Long, Long> times = new Pair<>(improved, slow);
-                    results.add(times);
+                    //long slow = t4 - t3;
+                    results.add(improved);
                 }
 
                 try {
-                    File file = new File(path + "/net_builders_10.txt");
+                    File file = new File(path + "/net_builders_worst_case.txt");
                     FileOutputStream fOut = new FileOutputStream(file, true);
-                    for(Pair<Long, Long> pLL : results){
-                        long a = pLL.first;
-                        long b = pLL.second;
-                        String str = String.valueOf(a) + ", " + String.valueOf(b) + "\n";
+                    for(Long l : results){
+                        String str = String.valueOf(l)+"\n";
                         fOut.write(str.getBytes());
                     }
                     fOut.close();
