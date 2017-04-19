@@ -131,7 +131,7 @@ public class SelectionScreen extends AppCompatActivity {
                 List<CubePiece> centres = new ArrayList<>();
                 List<Boolean> isCentre = new ArrayList<>(Arrays.asList(false,true,false,true,false,true,false,true,true,true,true,true,false,true,false,true,false,true,false,true));
 
-                List<Long> results = new ArrayList<>();
+                List<Pair<Long, Long>> results = new ArrayList<>();
                 for(int num = 0; num<1000; num++) {
                     for (CubePiece cp : vp)
                         cp.randomise();
@@ -161,13 +161,16 @@ public class SelectionScreen extends AppCompatActivity {
                     }
 
                     Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = CubeNetBuilder.fitFaces(CubeNetBuilder.netToCube(BLANK_NET), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), net);
-
                     for(ArrayList<Character> face : result.first)
                         Collections.rotate(face,2);
 
                     long t1 = SystemClock.currentThreadTimeMillis();
                     CubeNetBuilder.fitFaces(CubeNetBuilder.netToCube(BLANK_NET), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), net);
                     long t2 = SystemClock.currentThreadTimeMillis();
+
+                    long t3 = SystemClock.currentThreadTimeMillis();
+                    CubeNetBuilder.fitFaces(CubeNetBuilder.netToCube(BLANK_NET), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), result.first);
+                    long t4 = SystemClock.currentThreadTimeMillis();
                     //ArrayList<Character> f = net.remove(1);
                     //net.add(f);
                     //long t3 = SystemClock.currentThreadTimeMillis();
@@ -175,15 +178,17 @@ public class SelectionScreen extends AppCompatActivity {
                     //long t4 = SystemClock.currentThreadTimeMillis();
 
                     long improved = t2 - t1;
-                    //long slow = t4 - t3;
-                    results.add(improved);
+                    long slow = t4 - t3;
+                    results.add(new Pair<>(improved, slow));
                 }
 
                 try {
-                    File file = new File(path + "/net_builders_worst_case.txt");
+                    File file = new File(path + "/net_builders_a_and_worst.txt");
                     FileOutputStream fOut = new FileOutputStream(file, true);
-                    for(Long l : results){
-                        String str = String.valueOf(l)+"\n";
+                    for(Pair<Long, Long> pll : results){
+                        long fast = pll.first;
+                        long slow = pll.second;
+                        String str = String.valueOf(fast)+ "," + String.valueOf(slow) + "\n";
                         fOut.write(str.getBytes());
                     }
                     fOut.close();
