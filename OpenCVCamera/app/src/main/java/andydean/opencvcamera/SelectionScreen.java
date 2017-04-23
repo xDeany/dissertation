@@ -64,27 +64,39 @@ public class SelectionScreen extends AppCompatActivity {
             {
                 String path = Environment.getExternalStorageDirectory().getAbsoluteFile() + "/DissertationDataSet";
                 File dir = new File(path);
+                CubeDetector detector = new HoughLinesDetector(SelectionScreen.this);
                 dir.mkdirs();
+
+                List<Pair<Long, Boolean>> times = new ArrayList<>();
                 for(int i = 1; i<115; i++) {
                     try {
                         int id = SelectionScreen.this.getResources().getIdentifier("cube_" + i, "drawable", SelectionScreen.this.getPackageName());
                         Mat img = Utils.loadResource(SelectionScreen.this, id, Imgcodecs.CV_LOAD_IMAGE_COLOR);
-                        CubeDetector detector = new HoughLinesDetector(SelectionScreen.this);
-                        List<Point> corners = detector.detectCubeLocation(img);
-                        String strCorners = corners.toString();
-                        File file = new File(path + "/test_corners_1d.txt");
-                        FileOutputStream fOut = new FileOutputStream(file, true);
-                        byte[] bs = strCorners.getBytes();
-                        fOut.write(strCorners.getBytes());
-                        String nl = "\n";
-                        fOut.write(nl.getBytes());
-                        fOut.close();
 
+
+                        long t1 = SystemClock.currentThreadTimeMillis();
+                        List<Point> corners = detector.detectCubeLocation(img);
+                        long t2 = SystemClock.currentThreadTimeMillis();
+
+                        long tDiff = t2-t1;
+                        boolean foundCorners = corners.isEmpty();
+                        times.add(new Pair<>(tDiff, foundCorners));
 
                         img.release();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                }
+                try {
+                    File file = new File(path + "/test_corners_time_test.txt");
+                    FileOutputStream fOut = new FileOutputStream(file, true);
+                    for(Pair<Long, Boolean> tB : times){
+                        String str = String.valueOf(tB.first) + "," + String.valueOf(tB.second) + "\n";
+                        fOut.write(str.getBytes());
+                    }
+                    fOut.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -132,7 +144,7 @@ public class SelectionScreen extends AppCompatActivity {
                 List<Boolean> isCentre = new ArrayList<>(Arrays.asList(false,true,false,true,false,true,false,true,true,true,true,true,false,true,false,true,false,true,false,true));
 
                 List<Pair<Long, Long>> results = new ArrayList<>();
-                for(int num = 0; num<1000; num++) {
+                for(int num = 0; num<200; num++) {
                     for (CubePiece cp : vp)
                         cp.randomise();
 
@@ -393,7 +405,7 @@ public class SelectionScreen extends AppCompatActivity {
                 w.add('W');
                 w.add('W');
 
-
+*/
                 ArrayList<Character> r = new ArrayList<Character>(8);
                 r.add('R');
                 r.add('Y');
@@ -453,7 +465,7 @@ public class SelectionScreen extends AppCompatActivity {
                 w.add('O');
                 w.add('W');
                 w.add('B');
-                */
+                /*
 
                 ArrayList<Character> r = new ArrayList<Character>(8);
                 r.add('Y');
@@ -513,7 +525,7 @@ public class SelectionScreen extends AppCompatActivity {
                 w.add('B');
                 w.add('O');
                 w.add('Y');
-                w.add('G');
+                w.add('G');*/
 
                 net.add(r);
                 net.add(o);

@@ -698,7 +698,7 @@ public class HoughLinesDetector extends CubeDetector{
     /**
      * Attempts to detect the cube, returning the location of the corners (if they are found)
      * @param image ** The image to be analysed **
-     * @return corners **The corners of the cube the detector finds **
+     * @return corners **The corners of the cube the detector find, an empty list if none found**
      */
     public List<Point> detectCubeLocation(Mat image){
         variables.get(R.id.perpendicular_dist_min).setMax(image.cols()>image.rows()?image.cols():image.rows());
