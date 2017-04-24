@@ -323,58 +323,7 @@ public class ColourDetector {
         Point p6 = new Point(((p7.x - p5.x)/2)+p5.x, ((p7.y - p5.y)/2)+p5.y);
         Point p8 = new Point(((p1.x - p7.x)/2)+p7.x, ((p1.y - p7.y)/2)+p7.y);
 
-        //Point p1 = new Point(a.x + vecA.first, a.y + vecA.second);
-        //Point p5 = new Point(p1.x + vecA.first + vecA.first, p1.y + vecA.second + vecA.second);
-        //Point p9 = new Point(p5.x + vecA.first + vecA.first, p5.y + vecA.second + vecA.second);
-
-        //Point p3 = new Point(b.x + vecB.first, b.y + vecB.second);
-        //p5 = new Point(p3.x + vecB.first + vecB.first, p3.y + vecB.second + vecB.second);
-        //Point p7 = new Point(p5.x + vecB.first + vecB.first, p5.y + vecB.second + vecB.second);
-
-
         List<Point> centres = new ArrayList<>(Arrays.asList(p1,p2,p3,p4,p5,p6,p7,p8,p9));
         return centres;
     }
-/*
-    /**
-     * Takes the corners in any order, and finds the pair of corners that are furthest apart
-     * Idea is so that it creates a diagonal over the cube
-     * @param corners ** Corners to be analysed **
-     * @return bothDiags ** An arraylist containing both pairs of corners **
-     *
-    private static List<Pair<Point,Point>> getDiagonals(List<Point> corners){
-        Point a = corners.get(0);
-        Point b = corners.get(1);
-        Point c = corners.get(2);
-        Point d = corners.get(3);
-        //Take each pair of corners
-        List<Pair<Pair<Point, Point>, Double>> distances = new ArrayList<>();
-        distances.add(new Pair<>(new Pair<>(a, b), Line.calcDistBetween(a, b))); //ab
-        distances.add(new Pair<>(new Pair<>(a, c), Line.calcDistBetween(a, c))); //ac
-        distances.add(new Pair<>(new Pair<>(a, d), Line.calcDistBetween(a, d))); //ad
-        distances.add(new Pair<>(new Pair<>(b, c), Line.calcDistBetween(b, c))); //bc
-        distances.add(new Pair<>(new Pair<>(b, d), Line.calcDistBetween(b, d))); //bd
-        distances.add(new Pair<>(new Pair<>(c, d), Line.calcDistBetween(c, d))); //cd
-
-        Pair<Point, Point> diagA = new Pair<>(null, null);
-        Pair<Point, Point> diagB;
-        //Find the two pairs farthest apart
-        double max = 0;
-        int pair = 0;
-        for(int i = 0; i<6; i++){
-            if(distances.get(i).second > max){
-                diagA = distances.get(i).first;
-                max = distances.get(i).second;
-                pair = i;
-            }
-        }
-        diagB = distances.get(5-pair).first;
-
-        List<Pair<Point, Point>> bothDiags = new ArrayList<>();
-        bothDiags.add(diagA);
-        bothDiags.add(diagB);
-
-        return bothDiags;
-    }
-*/
 }

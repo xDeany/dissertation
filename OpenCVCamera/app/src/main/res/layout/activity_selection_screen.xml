@@ -15,41 +15,43 @@
         android:id="@+id/hough_lines_real_time_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hough Lines Real Time"
         android:layout_below="@+id/main_detector_button"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:text="Debug - Real time" />
 
     <Button
         android:id="@+id/hough_lines_image_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hough Lines Image"
         android:layout_below="@+id/hough_lines_real_time_button"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:text="Debug - Image" />
 
     <Button
         android:id="@+id/test_location_detector"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Test Location Detector"
         android:layout_below="@+id/hough_lines_image_button"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:text="Test Location Detector"
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/main_detector_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Main Detector"
         android:layout_below="@+id/randomNetFinder"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:text="Main application" />
 
     <Button
         android:id="@+id/test_cube_builder_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Test Cube Builder"
+        android:layout_alignStart="@+id/hough_lines_image_button"
         android:layout_below="@+id/test_location_detector"
-        android:layout_alignStart="@+id/hough_lines_image_button" />
+        android:text="Test Cube Builder"
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/test_net_builders"
@@ -57,7 +59,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/test_cube_builder_button"
         android:layout_centerHorizontal="true"
-        android:text="Full Test Net Builder" />
+        android:text="Debug - Net builder" />
 
     <TextView
         android:id="@+id/randomNetFinder"

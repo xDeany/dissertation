@@ -23,14 +23,12 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-public class MainDetector extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2{
+public class UserActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2{
 
-    private static String TAG = "MainDetector";
+    private static String TAG = "UserActivity";
 
     //Constantly stream the camera frames to the screen
     private static final String VIDEO_STATE = "video_state";
@@ -248,7 +246,7 @@ public class MainDetector extends AppCompatActivity implements CameraBridgeViewB
                 }
 
                 if(checkStickerNum(net)) {
-                    Intent i = new Intent(MainDetector.this, CubeNetBuilder.class);
+                    Intent i = new Intent(UserActivity.this, CubeNetBuilder.class);
                     i.putExtra("faces", net);
                     startActivity(i);
                 }else{

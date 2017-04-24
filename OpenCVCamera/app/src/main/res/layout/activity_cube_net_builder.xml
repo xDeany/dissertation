@@ -473,7 +473,7 @@
             android:layout_below="@+id/gridLayout2"
             android:layout_marginStart="20dp"
             android:layout_toEndOf="@+id/brute_force"
-            android:text="Get next net" />
+            android:text="improved search" />
 
         <Button
             android:id="@+id/brute_force"
@@ -481,7 +481,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_below="@+id/gridLayout2"
-            android:text="Brute force net" />
+            android:text="Depth first search" />
 
         <Button
             android:id="@+id/reset_net"

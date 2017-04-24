@@ -147,7 +147,7 @@ public class CubeNetBuilder extends AppCompatActivity {
 
         //Fit the faces together, drawing the new net if found
         long t1 = SystemClock.currentThreadTimeMillis();
-        Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(netToCube(BLANK_NET), new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, faces);
+        Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = improvedSearch(netToCube(BLANK_NET), new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, faces);
         long t2 = SystemClock.currentThreadTimeMillis() - t1;
         long mill = t2 % 1000;
         long seconds = (t2 / 1000) % 60;
@@ -177,7 +177,7 @@ public class CubeNetBuilder extends AppCompatActivity {
 
                 //ArrayList<ArrayList<Character>> copy = cloneNet(faces);
                 long t1 = SystemClock.currentThreadTimeMillis();
-                Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(netToCube(BLANK_NET),new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, faces);
+                Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = improvedSearch(netToCube(BLANK_NET),new ArrayList<>(Arrays.asList(0,0,0,0,0,0)), netLocation, faces);
                 long t2 = SystemClock.currentThreadTimeMillis() - t1;
                 long mill = t2 % 1000;
                 long seconds = (t2 / 1000) % 60;
@@ -248,16 +248,19 @@ public class CubeNetBuilder extends AppCompatActivity {
      * @param facesLeft **The faces still to add to the net**
      * @return newNet **The new net created, if all sides are added, else null**
      */
-    public static Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> fitFaces(List<CubePiece> currentCube, ArrayList<Integer> currentRotation, ArrayList<Integer> targetRotation, ArrayList<ArrayList<Character>> facesLeft) {
+    public static Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> improvedSearch(List<CubePiece> currentCube,
+                                                                                           ArrayList<Integer> currentRotation,
+                                                                                           ArrayList<Integer> targetRotation,
+                                                                                           ArrayList<ArrayList<Character>> facesLeft) {
+
         ArrayList<ArrayList<Character>> facesLeftCopy = cloneNet(facesLeft);
-        //Unlink the face to add in
+        //Unlink the face to be added in
         ArrayList<Character> face = facesLeftCopy.remove(0);
         int faceNum = 5-facesLeftCopy.size();
         int initRotation = 0;
 
         //Check if it is needing to skip to a later part in the tree
         //Increment the white side to go to the next branch
-        //Return null will signal any earlier faces to turn if there are no more white level branches
         if(lessEqual(currentRotation, targetRotation)) {
             initRotation = targetRotation.get(faceNum);
             if(faceNum == 5)
@@ -280,17 +283,18 @@ public class CubeNetBuilder extends AppCompatActivity {
                     if (facesLeftCopy.size() > 0) {
 
                         //Run the next layer of the tree
-                        Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = fitFaces(newCube, currentRotation, targetRotation, facesLeftCopy);
+                        Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = improvedSearch(newCube,
+                                                                                                currentRotation,
+                                                                                                targetRotation,
+                                                                                                facesLeftCopy);
                         //Check next rotation if lower layers return null
                         if (result != null)
                             return result;
-
                     } else
                         //Base case, return resulting net and the location in the tree
                         return new Pair<>(cubeToNet(newCube), currentRotation);
                 }
             }
-
             //Rotate the face and try again
             Collections.rotate(face,2);
         }
@@ -336,7 +340,7 @@ public class CubeNetBuilder extends AppCompatActivity {
         ArrayList<CubePiece> alteredPieces = new ArrayList<>();
         boolean allAdded = true;
 
-        //Add face to cube, allAdded checks the pieces don't have multiple stickers of the same colour
+        //Add face to cube, allAdded checks for any failed pieces
         for(int i=0; i<8; i++){
             Character c = face.get(i);
             boolean added = cubeClone.get(allPieceIndexesA.get(faceNum).get(i)).setSticker(c,allPieceIndexesB.get(faceNum).get(i));
@@ -487,27 +491,6 @@ public class CubeNetBuilder extends AppCompatActivity {
         }
         return newNet;
     }
-
-    /*
-     * Populates the lists that connect the stickers on a net, to individual pieces on a cube
-     *
-    private void setPieceIndexes() {
-        ArrayList<Integer> red = new ArrayList<>(Arrays.asList(0,1,2,3,4,5,6,7));
-        ArrayList<Integer> orange = new ArrayList<>(Arrays.asList(12,13,14,15,16,17,18,19));
-        ArrayList<Integer> yellow = new ArrayList<>(Arrays.asList(14,13,12,9,2,1,0,10));
-        ArrayList<Integer> green = new ArrayList<>(Arrays.asList(2,9,12,19,18,8,4,3));
-        ArrayList<Integer> blue = new ArrayList<>(Arrays.asList(14,10,0,7,6,11,16,15));
-        ArrayList<Integer> white = new ArrayList<>(Arrays.asList(6,5,4,8,18,17,16,11));
-        allPieceIndexesA = new ArrayList<>(Arrays.asList(red, orange, yellow, green, blue, white));
-
-        red = new ArrayList<>(Arrays.asList(0,0,0,0,0,0,0,0));
-        orange = new ArrayList<>(Arrays.asList(0,0,0,0,0,0,0,0));
-        yellow = new ArrayList<>(Arrays.asList(2,1,2,1,1,1,1,0));
-        green = new ArrayList<>(Arrays.asList(2,0,1,1,1,1,2,1));
-        blue = new ArrayList<>(Arrays.asList(1,1,2,1,1,0,2,1));
-        white = new ArrayList<>(Arrays.asList(2,1,1,0,2,1,1,1));
-        allPieceIndexesB = new ArrayList<>(Arrays.asList(red, orange, yellow, green, blue, white));
-    }*/
 
     /**
      * Generates a list of all the valid combinations of pieces

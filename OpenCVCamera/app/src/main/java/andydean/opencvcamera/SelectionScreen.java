@@ -9,7 +9,6 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -20,7 +19,6 @@ import org.opencv.core.Point;
 import org.opencv.imgcodecs.Imgcodecs;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -114,7 +112,7 @@ public class SelectionScreen extends AppCompatActivity {
         {
             public void onClick(View v)
             {
-                Intent i = new Intent(SelectionScreen.this, MainDetector.class);
+                Intent i = new Intent(SelectionScreen.this, UserActivity.class);
                 startActivity(i);
             }
         });
@@ -172,21 +170,21 @@ public class SelectionScreen extends AppCompatActivity {
                         Collections.rotate(net.get(i), randomNum * 2);
                     }
 
-                    Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = CubeNetBuilder.fitFaces(CubeNetBuilder.netToCube(BLANK_NET), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), net);
+                    Pair<ArrayList<ArrayList<Character>>, ArrayList<Integer>> result = CubeNetBuilder.improvedSearch(CubeNetBuilder.netToCube(BLANK_NET), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), net);
                     for(ArrayList<Character> face : result.first)
                         Collections.rotate(face,2);
 
                     long t1 = SystemClock.currentThreadTimeMillis();
-                    CubeNetBuilder.fitFaces(CubeNetBuilder.netToCube(BLANK_NET), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), net);
+                    CubeNetBuilder.improvedSearch(CubeNetBuilder.netToCube(BLANK_NET), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), net);
                     long t2 = SystemClock.currentThreadTimeMillis();
 
                     long t3 = SystemClock.currentThreadTimeMillis();
-                    CubeNetBuilder.fitFaces(CubeNetBuilder.netToCube(BLANK_NET), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), result.first);
+                    CubeNetBuilder.improvedSearch(CubeNetBuilder.netToCube(BLANK_NET), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), result.first);
                     long t4 = SystemClock.currentThreadTimeMillis();
                     //ArrayList<Character> f = net.remove(1);
                     //net.add(f);
                     //long t3 = SystemClock.currentThreadTimeMillis();
-                    //CubeNetBuilder.fitFaces(BLANK_NET, new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), net);
+                    //CubeNetBuilder.improvedSearch(BLANK_NET, new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0)), new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, -1)), net);
                     //long t4 = SystemClock.currentThreadTimeMillis();
 
                     long improved = t2 - t1;

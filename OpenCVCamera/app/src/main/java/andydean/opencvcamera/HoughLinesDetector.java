@@ -652,19 +652,19 @@ public class HoughLinesDetector extends CubeDetector{
                 toReturn = overlayGrouped.clone();
                 break;
             case "corners_only":
-                toReturn = cornersFound ? onlyCorners.clone() : image.clone();
+                toReturn = cornersFound ? onlyCorners.clone() : blankCanvas.clone();
                 break;
             case "corners_overlay":
                 toReturn = cornersFound ? overlayCorners.clone() : image.clone();
                 break;
             case "corners_and_lines_only":
-                toReturn = cornersFound ? onlyCornersAndLines.clone() : image.clone();
+                toReturn = cornersFound ? onlyCornersAndLines.clone() : blankCanvas.clone();
                 break;
             case "corners_and_lines_overlay":
                 toReturn = cornersFound ? overlayCornersAndLines.clone() : image.clone();
                 break;
             case "centres_only":
-                toReturn = cornersFound ? onlyCentres.clone() : image.clone();
+                toReturn = cornersFound ? onlyCentres.clone() : blankCanvas.clone();
                 break;
             case "centres_overlay":
                 toReturn = cornersFound ? overlayCentres.clone() : image.clone();

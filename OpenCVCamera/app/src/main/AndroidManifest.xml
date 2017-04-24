@@ -31,13 +31,13 @@
         <activity
             android:name=".RealTimeAnalysis"
             android:screenOrientation="landscape"
-            android:theme="@style/AppTheme"/>
+            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".ImageAnalysis"
             android:screenOrientation="landscape"
-            android:theme="@style/AppTheme"/>
+            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
-            android:name=".MainDetector"
+            android:name=".UserActivity"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".CubeNetBuilder"

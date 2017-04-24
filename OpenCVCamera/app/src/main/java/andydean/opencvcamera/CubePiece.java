@@ -40,6 +40,12 @@ public class CubePiece {
         return stickers;
     }
 
+    /**
+     * Sets the colour of a sticker on the piece if validity check is satisfied
+     * @param newSticker **Colour to be added**
+     * @param location **Location to be added to**
+     * @return validity of new piece
+     */
     public boolean setSticker(Character newSticker, int location){
         if(location > stickers.size() || stickers.get(location) != 'X')
             return false;
